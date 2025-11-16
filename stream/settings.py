@@ -39,6 +39,9 @@ CSRF_TRUSTED_ORIGINS = [
 
 # --- Définition des Applications ---
 INSTALLED_APPS = [
+
+    # Applications tierces
+    'unfold',          # Thème pour l'admin
     # Applications par défaut
     'django.contrib.admin',
     'django.contrib.auth',
@@ -47,8 +50,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Applications tierces
-    'unfold',          # Thème pour l'admin
     'corsheaders',     # Pour gérer les CORS
     'storages',        # Pour l'intégration avec R2/S3
 
