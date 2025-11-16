@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load socialaccount %}
+{% load i18n static %}
+{% load socialaccount %}
+{% load i18n static %}
+{% load socialaccount %}
+
+{% block title %}
+    {% trans "Sign Out" %}
+{% endblock %}
+
+{% block content %}
+<div class="relative w-full min-h-screen overflow-hidden">
+    <!-- Background Image -->
+    <img src="{% static 'img/image.png' %}" alt="Background" class="absolute top-0 left-0 inset-0 w-full h-full object-cover" />
+    
+    <!-- Background Overlay -->
+    <div class="absolute inset-0 bg-black/50"></div>
+
+    <!-- Content Container -->
+    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
+        <!-- Logo -->
+        <div class="flex flex-col items-center mb-8">
+            <div class="relative flex items-center justify-center w-[205px] h-[66px]">
+                <span class="text-white text-5xl font-normal font-['Italiana']">Flixe</span>
+                <span class="text-[#9d038b] text-5xl font-bold font-['Irish_Grover'] ml-2" style="text-shadow: 0 0 1px #ff4b4b, 0 0 1px #ff4b4b;">Porn</span>
+            </div>
+        </div>
+
+        <!-- Logout Content -->
+        <div class="w-full max-w-md p-8 rounded-2xl bg-black/70 backdrop-blur-sm border-4 border-fuchsia-500 text-center">
+            <h1 class="text-white text-3xl font-bold mb-6">
+                {% trans "Sign Out" %}
+            </h1>
+            
+            <p class="text-white mb-6">
+                {% trans 'Are you sure you want to sign out?' %}
+            </p>
+            
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full py-3 rounded-xl bg-[#a21892] text-white text-2xl font-normal hover:bg-fuchsia-800 transition-colors">
+                    {% trans "Sign Out" %}
+                </button>
+            </form>
+            
+            <div class="mt-6">
+                <a href="{% url 'home' %}" class="text-fuchsia-400 hover:underline">
+                    {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

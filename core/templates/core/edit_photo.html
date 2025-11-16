@@ -1,0 +1,133 @@
+{% extends "base_core.html" %}
+{% load static %}
+
+{% block title %}
+    Modifier la Photo - {{ photo.title }}
+{% endblock %}
+ 
+{% block content %}
+<div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div class="bg-white shadow-md rounded-lg">
+        <div class="px-8 py-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">📷 Modifier la Photo</h1>
+            
+            <form id="edit-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Image actuelle -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">📷 Photo Actuelle</h3>
+                    {% if photo.image_url %}
+                        <img src="{{ photo.image_url }}" alt="{{ photo.title }}" class="w-full h-48 object-cover rounded-md">
+                    {% else %}
+                        <p class="text-gray-500 italic">Aucune photo définie.</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Métadonnées -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Titre</label>
+                        {{ form.title }}
+                    </div>
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Description</label>
+                        {{ form.description }}
+                    </div>
+                    <div>
+                        <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700">Catégorie</label>
+                        {{ form.category }}
+                    </div>
+                </div>
+                
+                <!-- Boutons -->
+                <div class="flex items-center justify-end space-x-4 pt-6">
+                    <a href="{% url 'photo_detail' photo.id %}" class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-400">
+                        ❌ Annuler
+                    </a>
+                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        💾 Sauvegarder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// ... (à l'intérieur de votre addEventListener('DOMContentLoaded', ...))
+
+// Intercepter la soumission du formulaire
+editForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(editForm);
+    const action = e.submitter.value;
+
+    if (action === 'save_metadata') {
+        // Soumettre les métadonnées (logique existante)
+        fetch('{{ api_replace_url }}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showStatus('Métadonnées mises à jour !', false);
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showStatus(data.error, true);
+            }
+        });
+
+    } else if (action === 'replace_file') {
+        // Logique pour remplacer le fichier
+        const newFileInput = document.getElementById('new_photo_file');
+        if (!newFileInput.files.length) {
+            alert('Veuillez sélectionner un fichier.');
+            return;
+        }
+
+        showStatus('Remplacement du fichier en cours...', false);
+
+        // Utiliser notre API de remplacement
+        const replaceFormData = new FormData(editForm); // Copie les métadonnées
+        replaceFormData.append('object_id', '{{ photo.id }}');
+        replaceFormData.append('object_type', 'photo');
+        replaceFormData.append('new_file', newFileInput.files[0]);
+
+        fetch('{{ api_replace_url }}', {
+            method: 'POST',
+            body: replaceFormData,
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showStatus('Fichier remplacé avec succès !', false);
+                // Mettre à jour l'URL de l'image dans le formulaire pour que Django puisse la sauvegarder
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'image_file';
+                hiddenInput.value = data.new_media_url;
+                editForm.appendChild(hiddenInput);
+                
+                // Soumettre le formulaire principal pour sauvegarder la nouvelle URL
+                editForm.submit();
+            } else {
+                showStatus(`Erreur: ${data.error}`, true);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showStatus('Une erreur réseau est survenue.', true);
+        });
+    } else {
+        // Soumettre le formulaire par défaut (métadonnées)
+        editForm.submit();
+    }
+});    
+</script>
+{% endblock %}

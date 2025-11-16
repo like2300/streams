@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Contenu - StreamApp{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Mon Contenu</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Mes Vidéos -->
+    <div>
+        <h2 class="text-2xl font-bold mb-4">Mes Vidéos ({{ videos.count }})</h2>
+        {% if videos %}
+            <div class="space-y-4">
+                {% for video in videos %}
+                    <div class="bg-white rounded-lg shadow-md p-4 flex items-center">
+                        {% if video.cover_url %}
+                            <img src="{{ video.cover_url }}" alt="{{ video.title }}" class="w-20 h-12 object-cover rounded mr-4">
+                        {% else %}
+                            <div class="w-20 h-12 bg-gray-200 rounded mr-4 flex items-center justify-center">
+                                <span class="text-xs text-gray-500">Vidéo</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="flex-1">
+                            <h3 class="font-semibold truncate">{{ video.title }}</h3>
+                            <p class="text-sm text-gray-500">{{ video.created_at|date:"d/m/Y" }}</p>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <a href="{% url 'video_detail' video.id %}" class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
+                                Voir
+                            </a>
+                            <a href="{% url 'edit_video' video.id %}" class="px-2 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                                Modifier
+                            </a>
+                            <a href="{% url 'delete_video' video.id %}" class="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600">
+                                Supprimer
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600">Vous n'avez pas encore de vidéos.</p>
+        {% endif %}
+    </div>
+
+    <!-- Mes Photos -->
+    <div>
+        <h2 class="text-2xl font-bold mb-4">Mes Photos ({{ photos.count }})</h2>
+        {% if photos %}
+            <div class="space-y-4">
+                {% for photo in photos %}
+                    <div class="bg-white rounded-lg shadow-md p-4 flex items-center">
+                        <img src="{{ photo.image_url }}" alt="{{ photo.title }}" class="w-20 h-12 object-cover rounded mr-4">
+                        
+                        <div class="flex-1">
+                            <h3 class="font-semibold truncate">{{ photo.title }}</h3>
+                            <p class="text-sm text-gray-500">{{ photo.created_at|date:"d/m/Y" }}</p>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <a href="{% url 'photo_detail' photo.id %}" class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
+                                Voir
+                            </a>
+                            <a href="{% url 'edit_photo' photo.id %}" class="px-2 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                                Modifier
+                            </a>
+                            <a href="{% url 'delete_photo' photo.id %}" class="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600">
+                                Supprimer
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600">Vous n'avez pas encore de photos.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-8 text-center">
+    <a href="{% url 'upload_video_uppy' %}" class="inline-block px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 mr-4">
+        Ajouter une Vidéo
+    </a>
+    <a href="{% url 'upload_photo_uppy' %}" class="inline-block px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+        Ajouter une Photo
+    </a>
+</div>
+{% endblock %}

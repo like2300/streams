@@ -1,0 +1,29 @@
+{% extends 'base_core.html' %}
+
+{% block title %}Supprimer la Vidéo - {{ video.title }}{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Confirmer la suppression</h1>
+
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <p class="text-red-600 font-bold mb-4">Êtes-vous sûr de vouloir supprimer la vidéo suivante ?</p>
+    
+    <div class="mb-6 p-4 bg-gray-50 rounded">
+        <h3 class="font-bold text-lg">{{ video.title }}</h3>
+        <p class="text-gray-600">{{ video.description|truncatewords:20 }}</p>
+    </div>
+    
+    <p class="text-red-600 mb-6">Attention : Cette action est irréversible et supprimera définitivement la vidéo ainsi que ses métadonnées.</p>
+    
+    <form method="post" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+            Oui, supprimer
+        </button>
+    </form>
+    
+    <a href="{% url 'video_detail' video.id %}" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 ml-2">
+        Annuler
+    </a>
+</div>
+{% endblock %}

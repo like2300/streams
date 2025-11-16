@@ -1,0 +1,52 @@
+<!-- _video_items.html -->
+{% for video in videos %}
+  <div class="video-container" data-playing="false">
+    <video
+      src="{{ video.video.url }}"
+      class="w-full h-screen object-cover"
+      muted
+      playsinline
+    ></video>
+
+    <!-- Overlay -->
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none flex">
+      <!-- Partie gauche -->
+      <div class="w-3/4 p-4 md:p-6 flex flex-col justify-end text-white overlay-text">
+        <h2 class="text-xl md:text-2xl font-bold">{{ video.title }}</h2>
+        <p class="text-sm mt-1 mb-4">{{ video.description|default:"Aucune description" }}</p>
+        <div class="flex items-center gap-2 mb-6">
+          <div class="bg-gray-900 px-3 py-1 rounded-full text-xs">Suivre</div>
+          <span class="text-xs">{{ video.views }} vues</span>
+        </div>
+      </div>
+
+      <!-- Partie droite -->
+      <div class="w-1/4 flex flex-col justify-end items-center pb-10 space-y-4 text-white pointer-events-auto">
+        <button class="flex flex-col items-center">
+          <i class='bx bxs-heart text-3xl text-[#a21892]'></i>
+          <span class="text-xs mt-1">{{ video.views }}</span>
+        </button>
+
+        <button class="flex flex-col items-center">
+          <i class='bx bx-message-rounded-dots text-3xl'></i>
+          <span class="text-xs mt-1">0</span>
+        </button>
+
+        <button class="flex flex-col items-center">
+          <i class='bx bx-share-alt text-3xl'></i>
+          <span class="text-xs mt-1">Partager</span>
+        </button>
+
+        <div class="mt-6 flex flex-col items-center">
+          <div class="w-10 h-10 rounded-full bg-[#a21892] flex items-center justify-center font-bold text-lg">
+            {{ video.title|slice:"0:1" }}
+          </div>
+          <span class="text-xs mt-1">@{{ video.title|lower|slice:"0:6" }}</span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-bar"></div>
+    </div>
+  </div>
+{% endfor %}

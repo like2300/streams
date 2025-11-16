@@ -1,0 +1,106 @@
+ <!-- Modal -->
+<div id="login-modal" class="fixed backdrop-blur-lg {% if user.is_authenticated == False %}flex flex-col justify-center items-center  top-0 right-0 left-0 z-50 w-full inset-0 h-screen opacity-0 pointer-events-none transition-opacity duration-300 ease-out{% else %}hidden{% endif %}">
+  <div class="relative container  lg:w-[850px] m-auto px-6 scale-95 transform translate-y-4 opacity-0 transition-all duration-300 ease-out">
+    <div class="m-auto md:w-7/12 rounded-xl bg-black   shadow-xl">
+      <div class="p-8">
+
+        <!-- Close Button -->
+        <button onclick="closeModal()" class="absolute top-4   text-gray-500 hover:text-white">
+          <i class='bx bx-x text-2xl'></i>
+        </button>
+
+        <!-- Logo -->
+        <a href="{% url 'home' %}" class="hidden md:flex items-center mb-4 md:mb-0">
+          <div class="font-['Italiana'] font-normal text-[28px] md:text-[40px] text-white">Porn</div>
+          <div class="font-['Irish_Grover'] font-normal text-[36px] md:text-[55px] text-[#a21892] ml-2">Flixe</div>
+        </a>
+
+        <!-- Social Buttons -->
+        <div class="mt-10 grid space-y-4">
+          <button class="group h-12 px-6 border-2 border-gray-300 rounded-full transition duration-300 hover:border-blue-400 focus:bg-blue-50 active:bg-blue-100">
+            <div class="relative flex items-center space-x-4 justify-center" onclick="window.location.href='/accounts/google/login/?process=login'">
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" 
+                   class="absolute left-0 w-5" alt="google logo">
+              <span class="block w-max font-semibold tracking-wide text-white text-sm transition duration-300 group-hover:text-blue-600 sm:text-base">
+                Continue with Google
+              </span>
+            </div>
+          </button>
+          <button  class="group h-12 px-6 bg-white border-2 border-gray-300 rounded-full transition duration-300 hover:border-blue-400 focus:bg-blue-50 active:bg-blue-100" onclick="window.location.href='/accounts/login'">
+            <div class="relative flex items-center space-x-4 justify-center">
+              
+              <span class="block w-max font-semibold tracking-wide text-gray-700 text-sm transition  duration-300 group-hover:text-blue-600 sm:text-base">
+                 Continue with form
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Terms -->
+        <div class="mt-14 space-y-4 py-3  text-gray-400 text-center">
+          <p class="text-xs">By proceeding, you agree to our
+            <a href="/privacy-policy/" class="underline">Terms of Use</a>
+            and confirm you have read our
+            <a href="" class="underline">Privacy and Cookie Statement</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // Afficher la modal avec animation
+  function showModal() {
+    const modal = document.getElementById('login-modal');
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.classList.add('pointer-events-auto');
+
+    // Ajouter un léger délai pour permettre l'animation
+    setTimeout(() => {
+      modal.querySelector('.container').classList.remove('scale-95', 'translate-y-4', 'opacity-0');
+    }, 50);
+  }
+
+  // Fermer la modal avec animation
+  function closeModal() {
+    const container = document.querySelector('#login-modal .container');
+    const modal = document.getElementById('login-modal');
+
+    if (container && modal) {
+      container.classList.add('scale-95', 'translate-y-4', 'opacity-0');
+
+      // Retirer les interactions après animation
+      setTimeout(() => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('pointer-events-auto');
+      }, 300);
+    }
+  }
+
+  // Fermer avec Échap
+  window.addEventListener('keydown', (e) => {
+    if (e.key === "Escape") {
+      closeModal();
+    }
+  });
+
+  // Fermer en cliquant à l’extérieur
+  document.getElementById('login-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+      closeModal();
+    }
+  });
+
+  // Afficher la modal au chargement
+  window.addEventListener("DOMContentLoaded", () => {
+    showModal();
+  });
+</script>
+
+
+<style>
+
+.modal-overlay {
+  backdrop-filter: blur(48px);
+}
+</style>

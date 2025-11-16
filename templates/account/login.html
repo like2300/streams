@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load socialaccount %}
+{% load i18n static %}
+{% load socialaccount %}
+{% load i18n static widget_tweaks %}
+{% load socialaccount %}
+
+{% block title %}
+    {% trans "Sign In" %}
+{% endblock %}
+
+{% block content %}
+<div class="relative w-full min-h-screen overflow-hidden">
+    <!-- Background Image -->
+    <img src="{% static 'img/image.png' %}" alt="Background" class="absolute top-0 left-0 inset-0 w-full h-full object-cover" />
+    
+    <!-- Background Overlay -->
+    <div class="absolute inset-0 bg-black/50"></div>
+
+    <!-- Content Container -->
+    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
+        <!-- Logo -->
+        <div class="flex flex-col items-center mb-8">
+            <div class="relative flex items-center justify-center w-[205px] h-[66px]">
+                <span class="text-white text-5xl font-normal font-['Italiana']">Flixe</span>
+                <span class="text-[#9d038b] text-5xl font-bold font-['Irish_Grover'] ml-2" style="text-shadow: 0 0 1px #ff4b4b, 0 0 1px #ff4b4b;">Porn</span>
+            </div>
+            <p class="text-white text-center text-lg mt-4 max-w-lg">
+                Sexy photos · Modele sexy · Charme · Femmes sensuelles  
+            </p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="w-full max-w-md p-8 rounded-2xl bg-black/70 backdrop-blur-sm border-4 border-fuchsia-500 space-y-6">
+            <h1 class="text-white text-3xl font-bold text-center">
+                {% trans "Sign In" %}
+            </h1>
+
+            <form method="post" action="{% url 'account_login' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Email Field -->
+                <div class="relative">
+                    <input 
+                        type="email" 
+                        name="login" 
+                        placeholder="your mail" 
+                        class="w-full py-3 px-5 rounded-xl border-4 border-fuchsia-500 bg-transparent text-white placeholder-white/70"
+                        required
+                    >
+                    {% if form.login.errors %}
+                        <p class="mt-2 text-sm text-red-500">{{ form.login.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Password Field -->
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        name="password" 
+                        placeholder="Password" 
+                        class="w-full py-3 px-5 rounded-xl border-4 border-fuchsia-500 bg-transparent text-white placeholder-white/70"
+                        required
+                    >
+                    {% if form.password.errors %}
+                        <p class="mt-2 text-sm text-red-500">{{ form.password.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Remember Me and Forgot Password -->
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" name="remember" id="remember" class="w-5 h-5 rounded">
+                        <label for="remember" class="text-white">{% trans "Remember me" %}</label>
+                    </div>
+                    <a href="{% url 'account_reset_password' %}" class="text-fuchsia-400 hover:underline text-sm">
+                        {% trans "Forgot password?" %}
+                    </a>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="w-full py-3 rounded-xl bg-[#a21892] text-white text-2xl font-normal hover:bg-fuchsia-800 transition-colors">
+                    {% trans "Sign In" %}
+                </button>
+                
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value|default_if_none:'' }}" />
+            </form>
+
+            {% if SOCIALACCOUNT_ENABLED %}
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-black/70 text-white">Or continue with</span>
+                    </div>
+                </div>
+                
+                <!-- Google login button -->
+                {% get_providers as socialaccount_providers %}
+                {% for provider in socialaccount_providers %}
+                    {% if provider.id == "google" %}
+                        <a href="{% provider_login_url provider.id process='login' %}" 
+                           class="w-full py-3 rounded-xl bg-[#a21892] text-white text-2xl font-normal hover:bg-fuchsia-800 transition-colors flex justify-center items-center gap-2">
+                            {% trans "Sign in with Google" %}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <p class="text-center text-white">
+                {% trans "Don't have an account?" %}
+                <a href="{% url 'account_signup' %}" class="text-fuchsia-400 hover:underline">{% trans "Sign up" %}</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

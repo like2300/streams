@@ -1,0 +1,168 @@
+<div class="loader-container fixed top-0 left-0 w-screen h-screen bg-black/70 z-[9999] flex flex-col justify-center items-center">
+  <!-- From Uiverse.io by 20essentials --> 
+<svg viewBox="0 0 1000 1000" class="loader">
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 0"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 1"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 2"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 3"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 4"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 5"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 6"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 7"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 8"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 9"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 10"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 11"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 12"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 13"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 14"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 15"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 16"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 17"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 18"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 19"
+    class="poly"
+  ></polygon>
+  <polygon
+    points="500,200 759,650 241, 650"
+    style="--i: 20"
+    class="poly"
+  ></polygon>
+</svg>
+
+  <p class="text-white text-lg font-semibold">Chargement...</p>
+</div>
+
+<style>
+ 
+
+/* From Uiverse.io by 20essentials */ 
+.loader {
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  .poly {
+    fill: none;
+    stroke: #a21892;
+    stroke-width: 16;
+    transform-origin: center center;
+    animation: move 10s linear infinite;
+    animation-delay: calc(var(--i) * -0.5s);
+  }
+}
+
+@keyframes move {
+  0% {
+    transform: scale(0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+</style>
+
+<script>
+  const loaderContainer = document.querySelector('.loader-container');
+
+  // Fonction pour masquer le loader en douceur
+  function hideLoader() {
+    if (!loaderContainer) return;
+
+    loaderContainer.classList.add('hidden');
+  }
+
+  // Option 1 : Masquer après que toute la page est chargée
+  window.addEventListener('load', () => {
+    setTimeout(hideLoader, 3000); // Laisse le temps à l'animation de finir
+  });
+
+  // Option 2 : Timeout max (fallback)
+  setTimeout(() => {
+    hideLoader();
+  }, 7000);
+</script>

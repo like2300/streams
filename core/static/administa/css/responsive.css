@@ -1,0 +1,198 @@
+/* Responsive improvements for admin interface */
+
+/* Mobile first styles */
+.container-admin {
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* Tablet styles */
+@media (min-width: 640px) {
+  .container-admin {
+    padding: 0 1.5rem;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1024px) {
+  .container-admin {
+    padding: 0 2rem;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large desktop styles */
+@media (min-width: 1280px) {
+  .container-admin {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* Improved table responsiveness */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table-responsive table {
+  min-width: 600px;
+}
+
+/* Mobile table optimizations */
+@media (max-width: 639px) {
+  .table-mobile-stack td {
+    display: block;
+    width: 100%;
+    border: none;
+    padding: 0.5rem 1rem;
+  }
+  
+  .table-mobile-stack td:before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Touch target improvements */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Font size adjustments for mobile */
+@media (max-width: 639px) {
+  body {
+    font-size: 16px; /* Prevents zoom on iOS Safari */
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.25rem;
+  }
+  
+  .btn-mobile {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* Improved form controls for mobile */
+.form-control-mobile {
+  font-size: 16px; /* Prevents zoom on iOS Safari */
+  padding: 0.75rem;
+  min-height: 44px;
+}
+
+/* Navigation improvements */
+.nav-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  z-index: 40;
+}
+
+.nav-mobile-items {
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 0;
+}
+
+.nav-mobile-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  text-decoration: none;
+  color: #6b7280;
+}
+
+.nav-mobile-item.active {
+  color: #4f46e5;
+}
+
+/* Improved spacing for mobile */
+.space-y-mobile > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem;
+}
+
+.space-x-mobile > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 1rem;
+}
+
+/* Mobile card improvements */
+.card-mobile {
+  margin-bottom: 1rem;
+}
+
+.card-mobile:last-child {
+  margin-bottom: 0;
+}
+
+/* Improved grid for mobile */
+.grid-mobile {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-mobile-cols-1 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .grid-mobile-cols-1 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-mobile-cols-1 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Improved button sizes for mobile */
+.btn-mobile-lg {
+  padding: 1rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+/* Better touch targets for mobile */
+.touch-target-large {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Improved form layout for mobile */
+.form-layout-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .form-layout-mobile {
+    flex-direction: row;
+  }
+  
+  .form-layout-mobile > * {
+    flex: 1;
+  }
+}

@@ -18,7 +18,21 @@
 
     <!-- Informations Photo -->
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-3xl font-bold mb-2">{{ photo.title }}</h1>
+        <div class="flex justify-between items-start mb-4">
+            <h1 class="text-3xl font-bold">{{ photo.title }}</h1>
+            
+            <!-- Boutons Modifier/Supprimer -->
+            {% if user.is_authenticated and user == photo.user %}
+                <div class="flex space-x-2">
+                    <a href="{% url 'edit_photo' photo.id %}" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">
+                        Modifier
+                    </a>
+                    <a href="{% url 'delete_photo' photo.id %}" class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm">
+                        Supprimer
+                    </a>
+                </div>
+            {% endif %}
+        </div>
         
         <div class="flex items-center justify-between text-gray-600 mb-4">
             <div>

@@ -1,0 +1,338 @@
+{% extends "base_core.html" %}
+{% load static %}
+
+{% block title %}
+    Modifier la Vidéo - {{ video.title }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div class="bg-white shadow-md rounded-lg">
+        <div class="px-8 py-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">📝️ Modifier la Vidéo</h1>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} mb-4 p-3 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form id="edit-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Debug - Afficher les URLs brutes -->
+                <div class="mb-6 p-4 bg-yellow-50 rounded-md border border-yellow-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">🔍 Debug - URLs actuelles</h3>
+                    <p><strong>URL de la vidéo:</strong> {{ video.video_file }}</p>
+                    <p><strong>URL de la couverture:</strong> {{ video.cover_image }}</p>
+                </div>
+                
+                <!-- Vidéo actuelle -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">🎬 Vidéo Actuelle</h3>
+                    {% if video.video_url %}
+                        <video controls class="w-full max-h-64 rounded-md shadow-sm" id="current-video">
+                            <source src="{{ video.video_url }}" type="video/mp4">
+                            Votre navigateur ne supporte pas l'élément vidéo.
+                        </video>
+                        <div class="mt-2">
+                            <a href="{{ video.video_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">Ouvrir la vidéo dans un nouvel onglet</a>
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 italic">Aucune vidéo définie.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Image de couverture actuelle -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">🖼️ Image de Couverture Actuelle</h3>
+                    {% if video.cover_url %}
+                        <img src="{{ video.cover_url }}" alt="Image de couverture actuelle" class="w-full h-48 object-cover rounded-md shadow-sm">
+                        <div class="mt-2">
+                            <a href="{{ video.cover_url }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">Ouvrir l'image dans un nouvel onglet</a>
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 italic">Aucune image de couverture définie.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Nouvelle image de couverture -->
+                <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">🔄 Remplacer l'image de couverture</h3>
+                    <p class="text-sm text-gray-600 mb-4">Si vous sélectionnez un nouveau fichier, il remplacera l'actuelle.</p>
+                    <label for="new_cover_image" class="block text-sm font-medium text-gray-700">Nouvelle image de couverture (optionnel)</label>
+                    <input type="file" id="new_cover_image" name="new_cover_image" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:truncate focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Nouveau fichier vidéo -->
+                <div class="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">🔄 Remplacer la vidéo</h3>
+                    <p class="text-sm text-gray-600 mb-4">Sélectionnez un nouveau fichier vidéo pour remplacer l'actuel. Formats supportés : MP4, MOV, AVI, etc.</p>
+                    <label for="new_video_file" class="block text-sm font-medium text-gray-700">Nouveau fichier vidéo (optionnel)</label>
+                    <input type="file" id="new_video_file" name="new_video_file" accept="video/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:truncate focus:ring-purple-500 focus:border-purple-500">
+                </div>
+
+                <!-- Métadonnées -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Titre</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-red-500 text-sm mt-1">
+                                {{ form.title.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-red-500 text-sm mt-1">
+                                {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700">Catégorie</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-red-500 text-sm mt-1">
+                                {{ form.category.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.duration.id_for_label }}" class="block text-sm font-medium text-gray-700">Durée (secondes)</label>
+                        {{ form.duration }}
+                        {% if form.duration.errors %}
+                            <div class="text-red-500 text-sm mt-1">
+                                {{ form.duration.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Statut d'upload -->
+                <div id="upload-status" class="hidden mb-4 p-3 rounded-md">
+                    <p id="status-message"></p>
+                    <div id="upload-progress" class="hidden mt-2">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p id="progress-text" class="text-sm text-gray-600 mt-1">0%</p>
+                    </div>
+                </div>
+
+                <!-- Debug - Afficher les URLs ajoutées au formulaire -->
+                <div id="debug-urls" class="hidden mb-4 p-4 bg-yellow-50 rounded-md border border-yellow-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">🔍 Debug - URLs ajoutées au formulaire</h3>
+                    <div id="debug-urls-content"></div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-4 pt-6">
+                    <a href="{% url 'video_detail' video.id %}" class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-400">
+                        ❌ Annuler
+                    </a>
+                    <button type="submit" id="submit-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        💾 Sauvegarder les modifications
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('edit-form');
+    const newCoverInput = document.getElementById('new_cover_image');
+    const newVideoInput = document.getElementById('new_video_file');
+    const statusDiv = document.getElementById('upload-status');
+    const statusMessage = document.getElementById('status-message');
+    const submitBtn = document.getElementById('submit-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const uploadProgress = document.getElementById('upload-progress');
+    const debugUrlsDiv = document.getElementById('debug-urls');
+    const debugUrlsContent = document.getElementById('debug-urls-content');
+    
+    // Correction : Forcer HTTPS pour l'URL de l'API
+    let apiReplaceUrl = '{{ api_replace_url }}';
+    if (apiReplaceUrl.startsWith('http://')) {
+        apiReplaceUrl = apiReplaceUrl.replace('http://', 'https://');
+    }
+    
+    const videoId = '{{ video.id }}';
+
+    function showStatus(message, isError = false) {
+        statusDiv.classList.remove('hidden');
+        statusMessage.textContent = message;
+        statusDiv.className = isError ? 'mb-4 p-3 rounded-md bg-red-100 text-red-700 border border-red-300' : 'mb-4 p-3 rounded-md bg-green-100 text-green-700 border border-green-300';
+    }
+
+    function hideStatus() {
+        statusDiv.classList.add('hidden');
+        uploadProgress.classList.add('hidden');
+    }
+
+    function updateProgress(percent) {
+        progressBar.style.width = percent + '%';
+        progressText.textContent = percent + '%';
+    }
+
+    function showProgress() {
+        uploadProgress.classList.remove('hidden');
+        updateProgress(0);
+    }
+
+    function updateDebugUrls() {
+        // Afficher les URLs ajoutées au formulaire pour le debug
+        const coverUrlInput = editForm.querySelector('input[name="cover_image_url"]');
+        const videoUrlInput = editForm.querySelector('input[name="video_file_url"]');
+        
+        let debugContent = '';
+        if (coverUrlInput) {
+            debugContent += `<p><strong>URL de couverture:</strong> ${coverUrlInput.value}</p>`;
+        }
+        if (videoUrlInput) {
+            debugContent += `<p><strong>URL de vidéo:</strong> ${videoUrlInput.value}</p>`;
+        }
+        
+        if (debugContent) {
+            debugUrlsContent.innerHTML = debugContent;
+            debugUrlsDiv.classList.remove('hidden');
+        } else {
+            debugUrlsDiv.classList.add('hidden');
+        }
+    }
+
+    // Intercepter la soumission du formulaire pour gérer l'upload
+    editForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Traitement en cours...';
+
+        if (!newCoverInput.files.length && !newVideoInput.files.length) {
+            editForm.submit();
+            return;
+        }
+
+        try {
+            if (newCoverInput.files.length) {
+                await uploadFile(newCoverInput.files[0], 'cover');
+                updateDebugUrls(); // Mettre à jour le debug après l'upload
+                if (newVideoInput.files.length) {
+                    await uploadFile(newVideoInput.files[0], 'video_file');
+                    updateDebugUrls(); // Mettre à jour le debug après l'upload
+                }
+                editForm.submit();
+            } else if (newVideoInput.files.length) {
+                await uploadFile(newVideoInput.files[0], 'video_file');
+                updateDebugUrls(); // Mettre à jour le debug après l'upload
+                editForm.submit();
+            }
+        } catch (error) {
+            console.error('Erreur générale attrapée:', error);
+            // Affiche l'erreur spécifique retournée par le serveur si disponible
+            showStatus(error.message || 'Une erreur réseau est survenue.', true);
+            submitBtn.disabled = false;
+            submitBtn.textContent = '💾 Sauvegarder les modifications';
+        }
+    });
+
+    // Fonction générique pour uploader un fichier
+    async function uploadFile(file, mediaType) {
+        showStatus(`Upload du fichier ${mediaType} en cours...`);
+        showProgress();
+
+        const formData = new FormData();
+        formData.append('new_file', file);
+        formData.append('object_id', videoId);
+        formData.append('object_type', 'video');
+        formData.append('media_type', mediaType);
+
+        // Simulation de la barre de progression
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += 5;
+            updateProgress(progress);
+            if (progress >= 90) clearInterval(progressInterval);
+        }, 200);
+
+        try {
+            console.log(`Envoi de la requête à: ${apiReplaceUrl}`);
+            console.log(`Type de média: ${mediaType}`);
+            
+            const response = await fetch(apiReplaceUrl, {
+                method: 'POST',
+                body: formData,
+            });
+
+            clearInterval(progressInterval);
+            updateProgress(100);
+
+            // Vérifier si la réponse du serveur est OK (status 200-299)
+            if (!response.ok) {
+                // Tenter de lire le corps de l'erreur pour avoir plus de détails
+                let errorBody = 'Erreur serveur inconnue';
+                try {
+                    const errorJson = await response.json();
+                    errorBody = errorJson.error || `Erreur HTTP ${response.status}`;
+                } catch (e) {
+                    errorBody = `Erreur HTTP ${response.status}: ${await response.text()}`;
+                }
+                // Lever une nouvelle erreur avec le message du serveur
+                throw new Error(errorBody);
+            }
+
+            const result = await response.json();
+            console.log('Réponse du serveur:', result);
+
+            if (result.success) {
+                showStatus(result.message, false);
+                // Ajouter l'URL au formulaire pour que Django la sauvegarde
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = mediaType === 'cover' ? 'cover_image_url' : 'video_file_url';
+                hiddenInput.value = result.new_media_url;
+                editForm.appendChild(hiddenInput);
+                
+                // Debug: Afficher l'URL dans la console
+                console.log(`URL ajoutée au formulaire: ${hiddenInput.name} = ${hiddenInput.value}`);
+                
+                // Mettre à jour le debug
+                updateDebugUrls();
+                
+                // Si c'est une vidéo, mettre à jour l'aperçu
+                if (mediaType === 'video_file') {
+                    const currentVideo = document.getElementById('current-video');
+                    if (currentVideo) {
+                        currentVideo.src = result.new_media_url;
+                        currentVideo.load(); // Recharger la vidéo avec la nouvelle source
+                    }
+                }
+                
+                // Si c'est une image de couverture, mettre à jour l'aperçu
+                if (mediaType === 'cover') {
+                    const coverImage = document.querySelector('img[alt="Image de couverture actuelle"]');
+                    if (coverImage) {
+                        coverImage.src = result.new_media_url;
+                    }
+                }
+            } else {
+                // Si le serveur a répondu avec success: false
+                throw new Error(result.error || 'Le serveur a indiqué un échec de l\'opération.');
+            }
+        } catch (error) {
+            // Relancer l'erreur pour qu'elle soit attrapée par le bloc principal
+            console.error(`Erreur lors de l'upload du fichier ${mediaType}:`, error);
+            throw error;
+        }
+    }
+});
+</script>
+{% endblock %}

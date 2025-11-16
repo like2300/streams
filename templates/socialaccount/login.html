@@ -1,0 +1,83 @@
+{% extends "base.html" %}\n{% load i18n static %}\n{% load socialaccount %}
+{% load i18n static widget_tweaks %}
+{% load allauth account socialaccount %}
+
+{% block  title %}
+    {% trans "Sign In" %}
+{% endblock   %}
+
+{% block extra_head %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style type="text/tailwindcss">
+      @layer components {
+        .btn-primary {
+          @apply w-full py-3 rounded-xl bg-[#a21892] text-white text-2xl font-normal hover:bg-fuchsia-800 transition-colors;
+        }
+      }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="relative w-full overflow-hidden p-5 min-h-screen">
+    <!-- Background Image -->
+    <img src=" {% static 'img/image.png' %}" alt="Background" class="absolute top-0 left-0 inset-0 w-full h-full object-cover" />
+    
+    <!-- Background Overlay -->
+    <div class="absolute inset-0 bg-black/60"></div>
+
+    <!-- Content Container -->
+    <div class="relative z-10 flex flex-col items-center justify-center h-full pt-5 px-4">
+        <!-- Logo -->
+        <div class="flex flex-col items-center mb-12">
+            <div class="relative">
+                <div class="absolute inset-0"></div>
+                <div class="relative flex items-center justify-center w-[205px] h-[66px]">
+                    <span class="text-white text-5xl font-normal font-['Italiana']">Flixe</span>
+                    <span class="text-[#9d038b] text-5xl font-bold font-['Irish_Grover'] ml-2" style="text-shadow: 0 0 1px #ff4b4b, 0 0 1px #ff4b4b;">Porn</span>
+                </div>
+            </div>
+            <p class="text-white text-center text-lg mt-4 max-w-lg">
+                Sexy photos · Modele sexy · Charme · Femmes sensuelles  
+            </p>
+        </div>
+
+        <!-- Social Auth Form -->
+        <div class="w-full max-w-md space-y-6 bg-black/50 p-8 rounded-xl border-4 border-fuchsia-500 backdrop-blur-sm">
+            {% if process == "connect" %}
+                <h1 class="text-white text-3xl font-bold text-center mb-4">
+                    {% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}
+                </h1>
+                <p class="text-white/80 text-center mb-8">
+                    {% blocktrans with provider.name as provider %}You are about to connect a new third-party account from {{ provider }}.{% endblocktrans %}
+                </p>
+            {% else %}
+                <h1 class="text-white text-3xl font-bold text-center mb-4">
+                    {% blocktrans with provider.name as provider %}Sign In Via {{ provider }}{% endblocktrans %}
+                </h1>
+                <p class="text-white/80 text-center mb-8">
+                    {% blocktrans with provider.name as provider %}You are about to sign in using a third-party account from {{ provider }}.{% endblocktrans %}
+                </p>
+            {% endif %}
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary flex items-center justify-center gap-2">
+                    {% if provider.name == "Google" %}
+                        <i class='bx bxl-google text-2xl'></i>
+                    {% elif provider.name == "Facebook" %}
+                        <i class='bx bxl-facebook text-2xl'></i>
+                    {% endif %}
+                    {% trans "Continue" %}
+                </button>
+            </form>
+
+            <div class="text-center pt-4 border-t border-fuchsia-500/30">
+                <a href="{% url 'account_login' %}" class="text-fuchsia-400 hover:underline text-sm">
+                    {% trans "Back to sign in" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

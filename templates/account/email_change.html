@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load socialaccount %}
+{% load i18n static %}
+{% load socialaccount %}
+{% load i18n static %}
+{% load allauth widget_tweaks %}
+
+{% block  title %}
+    {% trans "Email Address" %}
+{% endblock   %}
+
+{% block extra_head %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style type="text/tailwindcss">
+      @layer components {
+        .input-field {
+          @apply w-full py-3 px-5 rounded-xl border-4 border-fuchsia-500 bg-transparent text-white placeholder-white/70;
+        }
+        .btn-primary {
+          @apply py-3 px-6 rounded-xl bg-[#a21892] text-white text-lg font-normal hover:bg-fuchsia-800 transition-colors;
+        }
+        .btn-secondary {
+          @apply py-2 px-4 rounded-xl border-2 border-fuchsia-500 text-white text-sm font-normal hover:bg-fuchsia-500/20 transition-colors;
+        }
+        .btn-danger {
+          @apply py-2 px-4 rounded-xl border-2 border-red-500 text-white text-sm font-normal hover:bg-red-500/20 transition-colors;
+        }
+      }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="relative w-full overflow-hidden p-5">
+    <!-- Background Image -->
+    <img src="{% static 'img/image.png' %}" alt="Background" class="absolute top-0 left-0 inset-0 w-full h-full object-cover" />
+    
+    <!-- Background Overlay -->
+    <div class="absolute inset-0 bg-black/60"></div>
+
+    <!-- Content Container -->
+    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
+        <!-- Logo -->
+        <div class="flex flex-col items-center mb-8">
+            <div class="relative flex items-center justify-center w-[205px] h-[66px]">
+                <span class="text-white text-5xl font-normal font-['Italiana']">Flixe</span>
+                <span class="text-[#9d038b] text-5xl font-bold font-['Irish_Grover'] ml-2" style="text-shadow: 0 0 1px #ff4b4b, 0 0 1px #ff4b4b;">Porn</span>
+            </div>
+        </div>
+
+        <!-- Email Management Card -->
+        <div class="w-full max-w-md p-8 rounded-2xl bg-black/70 backdrop-blur-sm border-4 border-fuchsia-500 space-y-6">
+            <h1 class="text-white text-3xl font-bold text-center">
+                {% trans "Email Address" %}
+            </h1>
+
+            {% if not emailaddresses %}
+                <div class="bg-yellow-500/20 border-l-4 border-yellow-500 p-4 mb-6">
+                    <p class="text-yellow-100">
+                        {% trans "You currently do not have any email address set up." %}
+                    </p>
+                </div>
+            {% endif %}
+
+            {% url 'account_email' as action_url %}
+            <form method="post" action="{{ action_url }}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Current Email -->
+                {% if current_emailaddress %}
+                <div class="space-y-2">
+                    <label class="text-white/80 text-sm">{% trans "Current email" %}</label>
+                    <div class="input-field bg-gray-800/50">
+                        {{ current_emailaddress.email }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Pending Email -->
+                {% if new_emailaddress %}
+                <div class="space-y-2">
+                    <label class="text-white/80 text-sm">
+                        {% if not current_emailaddress %}
+                            {% trans "Current email" %}
+                        {% else %}
+                            {% trans "Changing to" %}
+                        {% endif %}
+                    </label>
+                    <div class="input-field bg-gray-800/50">
+                        {{ new_emailaddress.email }}
+                    </div>
+                    <p class="text-white/70 text-sm">
+                        {% trans "Your email address is still pending verification." %}
+                    </p>
+                    <div class="flex gap-3 pt-2">
+                        <button form="pending-email" name="action_send" class="btn-secondary">
+                            {% trans 'Re-send Verification' %}
+                        </button>
+                        {% if current_emailaddress %}
+                        <button form="pending-email" name="action_remove" class="btn-danger">
+                            {% trans 'Cancel Change' %}
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- New Email Input -->
+                <div class="space-y-2">
+                    <label for="{{ form.email.id_for_label }}" class="text-white/80 text-sm">
+                        {% trans "Change to" %}
+                    </label>
+                    {% render_field form.email class="input-field" %}
+                    {% if form.email.errors %}
+                        <div class="text-red-400 text-sm">
+                            {{ form.email.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Submit Button -->
+                <button name="action_add" type="submit" class="btn-primary w-full">
+                    {% trans "Change Email" %}
+                </button>
+            </form>
+            
+            <!-- Hidden form for pending email actions -->
+            {% if new_emailaddress %}
+            <form id="pending-email" method="post" action="{% url 'account_email' %}" class="hidden">
+                {% csrf_token %}
+                <input type="hidden" name="email" value="{{ new_emailaddress.email }}">
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

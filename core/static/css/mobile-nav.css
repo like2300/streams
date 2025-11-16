@@ -1,0 +1,211 @@
+/* Améliorations CSS pour la navigation mobile */
+
+/* Améliorations générales pour les appareils tactiles */
+.touch-device a,
+.touch-device button,
+.touch-device .touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animation améliorée pour le menu mobile */
+#mobile-menu {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* Animation améliorée pour le popup de recherche */
+#search-popup {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+/* Overlay du menu mobile */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 996;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Améliorations pour les petits écrans */
+@media (max-width: 767px) {
+  /* Ajustements pour la barre de navigation mobile */
+  .mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background-color: #0f0203;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* Améliorations pour le menu mobile */
+  #mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background-color: #0f0203;
+    z-index: 1000;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Améliorations pour le popup de recherche */
+  #search-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #0f0203;
+    z-index: 1000;
+    padding: 5rem 1.5rem 2rem;
+  }
+  
+  /* Ajustements pour les éléments de formulaire */
+  #search-popup input {
+    font-size: 16px; /* Empêche le zoom sur iOS */
+    padding: 1rem 3rem 1rem 3rem;
+  }
+  
+  /* Améliorations pour les liens de navigation */
+  .mobile-nav-link {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.2s ease;
+  }
+  
+  .mobile-nav-link:hover,
+  .mobile-nav-link:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-nav-link:last-child {
+    border-bottom: none;
+  }
+  
+  /* Améliorations pour la section utilisateur */
+  .mobile-user-section {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Améliorations pour les boutons */
+  .mobile-button {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .mobile-button-primary {
+    background: linear-gradient(to right, #a21892, #e94057);
+    color: white;
+  }
+  
+  .mobile-button-secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  .mobile-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Améliorations pour l'accessibilité */
+  .mobile-nav-link:focus,
+  .mobile-button:focus {
+    outline: 2px solid #a21892;
+    outline-offset: 2px;
+  }
+  
+  /* Améliorations pour la performance */
+  #mobile-menu,
+  #search-popup,
+  .mobile-menu-overlay {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+  }
+}
+
+/* Améliorations pour les très petits écrans */
+@media (max-width: 480px) {
+  #search-popup {
+    padding: 4rem 1rem 1rem;
+  }
+  
+  #search-popup input {
+    padding: 0.75rem 2.5rem 0.75rem 2.5rem;
+  }
+  
+  .mobile-nav-link {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Améliorations pour les écrans larges (tablette) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  #mobile-menu {
+    width: 320px;
+  }
+  
+  #search-popup {
+    padding: 6rem 2rem 3rem;
+  }
+}
+
+/* Optimisations pour la performance */
+@media (prefers-reduced-motion: reduce) {
+  #mobile-menu,
+  #search-popup,
+  .mobile-menu-overlay {
+    transition: none;
+  }
+}
+
+/* Améliorations pour le mode sombre */
+@media (prefers-color-scheme: dark) {
+  #mobile-menu,
+  #search-popup {
+    background-color: #0f0203;
+  }
+  
+  .mobile-menu-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+}

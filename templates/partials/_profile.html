@@ -1,0 +1,190 @@
+<div class="bg-gray-100 bg-opacity-80">
+    <!-- Sidebar -->
+    <div class="fixed z-40 top-0 left-0 backdrop-blur-md text-white w-[320px] sm:w-[400px] md:w-[550px] min-h-screen overflow-y-auto transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] transform -translate-x-full" id="sidebar">
+        <div class="p-6 bg-black/90 h-screen flex flex-col items-center justify-between">
+            <!-- Bouton Fermer avec animation -->
+            <button onclick="closeSidebar()" class="absolute top-4 right-4 text-white hover:text-[#e94057] transition-colors duration-300">
+                <i class='bx bx-x text-3xl'></i>
+            </button>
+
+            <!-- Section Profil -->
+            <div class="w-full flex-1 flex flex-col items-center justify-center">
+                {% if user.is_authenticated %}
+                <div class="flex flex-col items-center gap-6">
+                    <!-- Avatar avec animations améliorées -->
+                    <div class="relative group">
+                          <div class="w-40 h-40 rounded-full bg-gradient-to-br from-[#a21892] to-[#e94057] flex items-center justify-center font-bold text-6xl text-white shadow-xl transform group-hover:scale-105 transition-all duration-500 ease-out">
+                              {{ user.username|upper|slice:"0:1" }}
+                          </div>
+                          <div class="absolute inset-0 rounded-full bg-[#a21892] opacity-0 group-hover:opacity-20 blur-lg transition-all duration-700 -z-10"></div>
+                          
+                          <!-- Bouton de modification -->
+                          {% if user.is_authenticated %}
+                          <button onclick="openUsernamePopup()" 
+                              class="absolute bottom-0 right-0 w-10 h-10 bg-white rounded-full bg-opacity-90  shadow-md hover:bg-gray-100 transition-transform  ">
+                              <i class='bx bx-edit text-[#a21892] text-xl'></i>
+                          </button>
+                          {% endif %}
+                    </div>
+ 
+                    <!-- Informations utilisateur -->
+                    <div class="flex flex-col items-center justify-center space-y-2 text-center">
+                        <h3 class="font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[#a21892] to-[#e94057] animate-text">
+                            {{ user.username|upper }}
+                        </h3>
+                        
+                        <!-- Statut d'abonnement -->
+                        <div class="flex flex-col items-center space-y-1">
+                            {% if has_active_subscription %}
+                                <span class="px-3 py-1 rounded-full bg-green-900/30 text-green-400 text-xs font-medium flex items-center transition-all hover:scale-105">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                                    ABONNÉ {{ user_subscription.plan.name|upper }}
+                                </span>
+                                <p class="text-xs text-gray-400/80 animate-fade-in">Expire le {{ user_subscription.end_date|date:"d/m/Y" }}</p>
+                            {% else %}
+                                <span class="px-3 py-1 rounded-full bg-red-900/30 text-red-400 text-xs font-medium flex items-center transition-all hover:scale-105">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                                    NON ABONNÉ
+                                </span>
+                                <a href="{% url 'subscribe' %}" class="text-xs font-medium bg-gradient-to-r from-[#a21892] to-[#e94057] text-transparent bg-clip-text hover:underline transition-all duration-300 hover:scale-105 inline-block">
+                                    S'abonner maintenant
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <!-- Date d'inscription -->
+                        <div class="mt-2 flex items-center text-gray-400/80 text-xs animate-fade-in">
+                            <i class='bx bx-calendar mr-1 transition-transform hover:scale-110'></i>
+                            <span>Membre depuis {{ user.date_joined|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Style pour utilisateur non connecté -->
+                <div class="flex flex-col items-center gap-6 group cursor-pointer" onclick="document.location.href='{% url 'account_login' %}'">
+                    <div class="w-40 h-40 rounded-full bg-gray-700/50 flex items-center justify-center transition-all duration-500 group-hover:bg-[#a21892]/30 group-hover:scale-105">
+                        <i class='bx bx-user text-4xl text-gray-400 group-hover:text-[#e94057] transition-all'></i>
+                    </div>
+                    <div class="flex flex-col items-center justify-center space-y-1 text-center">
+                        <h3 class="font-bold text-2xl text-gray-300 group-hover:text-white transition-colors">Invité</h3>
+                        <p class="text-sm text-gray-400 group-hover:text-[#e94057] transition-colors">Connectez-vous pour continuer</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Menu dynamique -->
+                <nav class="mt-10 w-full max-w-xs space-y-4">
+                    {% if user.is_authenticated %}
+                        <!-- Menu pour utilisateur connecté -->
+                       
+          
+                        
+                      <a href="{% url 'account_logout' %}" 
+                      class="flex items-center justify-center py-2 px-6 rounded-full border
+                       border-[#a21892]/50 hover:bg-[#a21892]/20 transition-all duration-300 group w-full max-w-xs">
+                        <div class="flex items-center justify-center">
+                                <i class='bx bx-log-out mr-3 text-xl group-hover:text-red-400 transition-colors'></i>
+                                <span>Déconnexion</span>
+                            </div>
+                      </a>
+
+                 
+                    {% else %}
+                        <!-- Menu pour invité -->
+                        <a href="{% url 'account_login' %}" class="flex items-center justify-center py-2 px-6 rounded-full border
+                       border-[#a21892]/50 hover:bg-[#a21892]/20 transition-all duration-300 group w-full max-w-xs">
+                            <div class="flex items-center">
+                                <i class='bx bx-log-in mr-3 text-xl group-hover:text-[#e94057] transition-colors'></i>
+                                <span>Connexion</span>
+                            </div>
+                            <i class='bx bx-chevron-right opacity-0 group-hover:opacity-100 transition-all'></i>
+                        </a>
+                        
+                        <a href="{% url 'account_signup' %}" class="flex items-center justify-center py-2 px-6 rounded-full border
+                       border-[#a21892]/50 hover:bg-[#a21892]/20 transition-all duration-300 group w-full max-w-xs">
+                            <div class="flex items-center">
+                                <i class='bx bx-user-plus mr-3 text-xl group-hover:text-[#e94057] transition-colors'></i>
+                                <span>Inscription</span>
+                            </div>
+                            <i class='bx bx-chevron-right opacity-0 group-hover:opacity-100 transition-all'></i>
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+
+            <!-- Section Admin -->
+            {% if user.is_staff %}
+            <div class="w-full py-6  ">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-full max-w-xs">
+                        {% include "partials/sectioneur.html" %}
+                        <p class="text-slate-300 text-[10px] text-center p-2" > Bienvenue Administrateur  <span class="text-[#a21892]">{{user.username}}</span> vous pourrez modifier les contenus disponibles et le pannel d'administration</p>
+                    </div>
+                    <a href="{% url 'admin_dashboard' %}" class="flex items-center justify-center py-2 px-6 rounded-full border border-[#a21892]/50 hover:bg-[#a21892]/20 transition-all duration-300 group w-full max-w-xs">
+                        <div class="flex items-center justify-center">
+                            <i class='bx bx-shield mr-3 text-xl group-hover:text-[#e94057] transition-colors'></i>
+                            <span>Administration</span>
+                        </div>
+                        
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="w-full pt-6 border-t border-white/10 text-sm text-gray-400 text-center animate-fade-in">
+                &copy; <script>document.write(new Date().getFullYear())</script> Flixe. Tous droits réservés.
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes text {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .animate-text {
+        background-size: 200% auto;
+        animation: text 3s ease infinite;
+    }
+    @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fade-in 0.6s ease-out forwards;
+    }
+</style>
+ 
+
+<!-- MODAL -->
+<div id="username-modal" onclick="closeUsernamePopup()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center">
+    <!-- Contenu centré --> 
+        <!-- IFRAME -->
+        <iframe src="{% url 'update_username' %}" class="w-full h-full border-none"></iframe>
+
+        <!-- BOUTON DE FERMETURE -->
+        <button onclick="closeUsernamePopup()" 
+            class="absolute top-3 right-3 w-10 h-10 text-white hover:text-[#a21892] hover:bg-white bg-[#a21892] rounded-full transition-colors z-50">
+            <i class='bx bx-x text-2xl'></i>
+        </button>
+ 
+</div>
+
+
+<script>
+function openUsernamePopup() {
+    const modal = document.getElementById('username-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('sidebar').classList.add('-translate-x-full');
+}
+
+function closeUsernamePopup() {
+    const modal = document.getElementById('username-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+</script>
