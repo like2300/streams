@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block title %}Uploader une Vidéo - StreamApp{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-2">🎬 Uploader une Vidéo</h1>
+<p class="text-gray-600 mb-6">Remplissez les informations, puis glissez-déposez votre vidéo.</p>
+
+<div class="flex flex-col lg:flex-row gap-8">
+    <!-- Formulaire metadonnées -->
+    <div class="lg:w-1/3">
+        <form id="upload-form" class="space-y-4 bg-gray-50 p-4 rounded-lg">
+            <div>
+                <label for="video-title" class="block text-sm font-medium text-gray-700">Titre *</label>
+                <input type="text" id="video-title" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+                <label for="video-description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="video-description" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </div>
+            <div>
+                <label for="video-category" class="block text-sm font-medium text-gray-700">Catégorie</label>
+                <select id="video-category" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Sélectionner --</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="cover-input" class="block text-sm font-medium text-gray-700">Image de couverture (optionnel)</label>
+                <input type="file" id="cover-input" accept="image/*" class="mt-1 block w-full">
+            </div>
+            <div>
+                <label for="video-duration" class="block text-sm font-medium text-gray-700">Durée (secondes)</label>
+                <input type="number" id="video-duration" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+        </form>
+    </div>
+
+    <!-- Zone d'upload -->
+    <div class="lg:w-2/3">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition">
+                <input type="file" id="file-input" accept="video/*" style="display: none;">
+                <div id="drop-content">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-8l-3.172-3.172a4 4 0 00-5.656 0L28 28M9 20l3.172-3.172a4 4 0 015.656 0L28 28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    <p class="text-gray-600 font-medium">Glissez-déposez votre vidéo ici</p>
+                    <p class="text-gray-400 text-sm mt-1">ou cliquez pour sélectionner</p>
+                </div>
+                <div id="upload-progress" class="hidden mt-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progress-bar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text" class="text-sm text-gray-600 mt-2">Chargement...</p>
+                </div>
+            </div>
+        </div>
+        <div id="upload-status" class="mt-4 p-4 rounded-lg hidden"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('upload-status');
+    statusDiv.className = `mt-4 p-4 rounded-lg ${
+        type === 'success' 
+        ? 'bg-green-100 text-green-700 border border-green-300' 
+        : 'bg-red-100 text-red-700 border border-red-300'
+    }`;
+    statusDiv.textContent = message;
+    statusDiv.classList.remove('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎬 Page upload vidéo chargée');
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const coverInput = document.getElementById('cover-input');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+
+    // Clic sur la zone
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-500', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            uploadFile();
+        }
+    });
+
+    // Sélection fichier
+    fileInput.addEventListener('change', uploadFile);
+
+    async function uploadFile() {
+        const videoFile = fileInput.files[0];
+        if (!videoFile) return;
+
+        const title = document.getElementById('video-title').value.trim();
+        if (!title) {
+            showStatus('❌ Veuillez entrer un titre', 'error');
+            return;
+        }
+
+        console.log('📤 Upload du fichier:', videoFile.name);
+        
+        // Afficher la barre de progression
+        document.getElementById('drop-content').classList.add('hidden');
+        uploadProgress.classList.remove('hidden');
+
+        try {
+            // 1️⃣ ÉTAPE 1: Uploader la vidéo vers R2 via le serveur
+            const videoFormData = new FormData();
+            videoFormData.append('file', videoFile);
+            videoFormData.append('uploadType', 'videos');
+
+            progressText.textContent = 'Upload de la vidéo...';
+            const videoResponse = await fetch('{% url "upload_file" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: videoFormData
+            });
+
+            if (!videoResponse.ok) {
+                const error = await videoResponse.json().catch(() => ({error: `Erreur HTTP: ${videoResponse.status}`}));
+                throw new Error(error.error || `Erreur HTTP: ${videoResponse.status}`);
+            }
+
+            const videoData = await videoResponse.json();
+            console.log('✅ Vidéo uploadée vers R2:', videoData.fileURL);
+
+            // 2️⃣ ÉTAPE 2: Uploader l'image de couverture si présente
+            let coverURL = null;
+            const coverFile = coverInput.files[0];
+            if (coverFile) {
+                progressText.textContent = 'Upload de la couverture...';
+                const coverFormData = new FormData();
+                coverFormData.append('file', coverFile);
+                coverFormData.append('uploadType', 'covers');
+
+                const coverResponse = await fetch('{% url "upload_file" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: coverFormData
+                });
+
+                if (coverResponse.ok) {
+                    const coverData = await coverResponse.json();
+                    coverURL = coverData.fileURL;
+                    console.log('✅ Couverture uploadée vers R2:', coverURL);
+                } else {
+                    console.warn('⚠️ Erreur lors de l\'upload de la couverture:', await coverResponse.text());
+                }
+            }
+
+            progressText.textContent = 'Finalisation...';
+            progressBar.style.width = '90%';
+
+            // 3️⃣ ÉTAPE 3: Finaliser en base de données
+            const description = document.getElementById('video-description').value;
+            const category = document.getElementById('video-category').value;
+            const duration = document.getElementById('video-duration').value;
+
+            const finalResponse = await fetch('{% url "finalize_upload" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    fileURL: videoData.fileURL,
+                    cover_image: coverURL,
+                    uploadType: 'video',
+                    title: title,
+                    description: description,
+                    category: category || null,
+                    duration: duration || 0
+                })
+            });
+
+            const finalData = await finalResponse.json();
+
+            if (finalData.success) {
+                progressBar.style.width = '100%';
+                progressText.textContent = '✅ Complété!';
+                
+                showStatus('✅ ' + finalData.message, 'success');
+                
+                setTimeout(() => {
+                    window.location.href = finalData.url;
+                }, 1500);
+            } else {
+                throw new Error(finalData.error || 'Erreur serveur');
+            }
+
+        } catch (err) {
+            console.error('❌ Erreur:', err);
+            uploadProgress.classList.add('hidden');
+            document.getElementById('drop-content').classList.remove('hidden');
+            showStatus('❌ Erreur: ' + err.message, 'error');
+        }
+    }
+});
+</script>
+{% endblock %}
