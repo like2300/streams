@@ -17,6 +17,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.contrib import messages
 from .forms import VideoForm, PhotoForm, PhotoEditForm, VideoEditForm
 from .models import Video, Photo, Category
+ 
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +219,7 @@ class FinalizeUploadView(View):
                     duration=int(duration) if duration else 0,
                     category_id=category_id if category_id else None,
                 )
-                return JsonResponse({'success': True, 'id': video.id, 'url': f'/video/{video.id}/', 'message': 'Vidéo publiée'})
+                return JsonResponse({'success': True, 'id': video.id, 'url': f'/administration/video/{video.id}/', 'message': 'Vidéo publiée'})
             elif upload_type == 'photo':
                 photo = Photo.objects.create(
                     user=request.user,
@@ -227,7 +228,7 @@ class FinalizeUploadView(View):
                     photo_file=file_url,
                     category_id=category_id if category_id else None,
                 )
-                return JsonResponse({'success': True, 'id': photo.id, 'url': f'/photo/{photo.id}/', 'message': 'Photo publiée'})
+                return JsonResponse({'success': True, 'id': photo.id, 'url': f'/administration/photo/{photo.id}/', 'message': 'Photo publiée'})
 
             return JsonResponse({'error': 'Type invalide'}, status=400)
         except Exception as e:
@@ -300,7 +301,7 @@ def delete_video(request, video_id):
         video_title = video.title
         video.delete()
         messages.success(request, f"Vidéo '{video_title}' supprimée avec succès!")
-        return redirect('home')  # Rediriger vers la page d'accueil après suppression
+        return redirect(reverse('home'))  # Rediriger vers la page d'accueil après suppression
     
     return render(request, 'core/delete_video.html', {'video': video})
 
@@ -314,7 +315,7 @@ def edit_photo(request, photo_id):
     # Vérifier que l'utilisateur est le propriétaire
     if request.user != photo.user and not request.user.is_staff:
         messages.error(request, "Vous n'avez pas l'autorisation de modifier cette photo.")
-        return redirect('photo_detail', photo_id=photo_id)
+        return redirect(reverse('photo_detail', kwargs={'photo_id': photo_id}))
     
     categories = Category.objects.all()
     
@@ -325,7 +326,7 @@ def edit_photo(request, photo_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Photo mise à jour avec succès !")
-            return redirect('photo_detail', photo_id=photo_id)
+            return redirect(reverse('photo_detail', kwargs={'photo_id': photo_id}))
     else:
         # Si GET, pré-remplit le formulaire avec les données existantes
         form = PhotoEditForm(instance=photo)
@@ -352,7 +353,7 @@ def delete_photo(request, photo_id):
         photo_title = photo.title
         photo.delete()
         messages.success(request, f"Photo '{photo_title}' supprimée avec succès!")
-        return redirect('home')  # Rediriger vers la page d'accueil après suppression
+        return redirect(reverse('home'))  # Rediriger vers la page d'accueil après suppression
     
     return render(request, 'core/delete_photo.html', {'photo': photo})
 
@@ -605,3 +606,13 @@ class ReplaceMediaView(View):
             # Logguer l'erreur complète pour le débogage
             logger.error(f"Erreur inattendue dans ReplaceMediaView: {e}", exc_info=True)
             return JsonResponse({'error': 'Une erreur interne est survenue.'}, status=500)
+
+
+
+
+
+# =====================================================================
+# views app for user 
+# =====================================================================
+def index(request):
+    return render(request, 'user/index.html')
