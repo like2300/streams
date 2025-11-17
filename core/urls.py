@@ -41,5 +41,5 @@ user_patterns = [
 
 urlpatterns = [
     path('administration/', include(administration_patterns)),
-    path('', include(administration_patterns)),
+    path('', include(user_patterns)),
 ]

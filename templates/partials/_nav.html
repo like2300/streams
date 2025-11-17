@@ -48,14 +48,14 @@
 
 <nav class="flex flex-col md:flex-row justify-between items-center px-4 md:px-8 py-4 bg-transparent transition-all duration-300">
   <!-- Logo Desktop -->
-  <a href="{% url 'home' %}" class="hidden md:flex items-center mb-4 md:mb-0">
+  <a href=" " class="hidden md:flex items-center mb-4 md:mb-0">
     <div class="font-['Italiana'] font-normal text-[28px] md:text-[40px] text-white">Porn</div>
     <div class="font-['Irish_Grover'] font-normal text-[36px] md:text-[55px] text-[#a21892] ml-2">Flixe</div>
   </a>
 
   <!-- Mobile Header (Logo + Search + Hamburger) -->
   <div class="md:hidden bg-[#0f0203] w-full fixed top-0 left-0 right-0 z-[999] px-4 py-4 flex items-center justify-between">
-    <a href="{% url 'home' %}" class="flex items-center">
+    <a href=" " class="flex items-center">
       <div class="font-['Italiana'] font-normal text-[28px] text-white">Porn</div>
       <div class="font-['Irish_Grover'] font-normal text-[36px] text-[#a21892] ml-2">Flixe</div>
     </a>
@@ -75,7 +75,7 @@
 
   <!-- 🔍 Popup de Recherche Mobile -->
   <div id="search-popup" class="md:hidden fixed inset-0 z-[998] bg-[#0f0203] flex flex-col pt-20 px-6 pb-8 transform -translate-y-full opacity-0 pointer-events-none transition-all duration-300">
-    <form action="{% url 'search' %}" method="get" class="mb-6 relative mt-12">
+    <form action=" " method="get" class="mb-6 relative mt-12">
       <input
         type="text"
         name="q"
@@ -96,27 +96,27 @@
     <div class="flex flex-col h-full pt-20 px-6 pb-8">
       <!-- Navigation Links -->
       <nav class="flex flex-col gap-4 mb-8">
-        <a href="{% url 'home' %}" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/' %}bg-white/10{% endif %}">
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/' %}bg-white/10{% endif %}">
           <i class='bx bx-home text-2xl'></i>
           <span>Home</span>
         </a>
-        <a href="{% url 'series' %}" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/series' %}bg-white/10{% endif %}">
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/series' %}bg-white/10{% endif %}">
           <i class='bx bx-tv text-2xl'></i>
           <span>Séri</span>
         </a>
-        <a href="{% url 'films' %}" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/films' %}bg-white/10{% endif %}">
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/films' %}bg-white/10{% endif %}">
           <i class='bx bxs-film text-2xl'></i>
           <span>Film</span>
         </a>
-        <a href="{% url 'shorts' %}" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/short_videos' %}bg-white/10{% endif %}">
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/short_videos' %}bg-white/10{% endif %}">
           <i class='bx bx-play text-2xl'></i>
           <span>Short Video</span>
         </a>
-        <a href="{% url 'photos' %}" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/photos' %}bg-white/10{% endif %}">
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/photos' %}bg-white/10{% endif %}">
           <i class='bx bx-image-alt text-2xl'></i>
           <span>Photo</span>
         </a>
-        <a href="{% url 'genres' %}" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/genres' %}bg-white/10{% endif %}">
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/genres' %}bg-white/10{% endif %}">
           <i class='bx bx-filter text-2xl'></i>
           <span>Genre</span>
         </a>
@@ -141,7 +141,7 @@
                   ABONNÉ • Expire le {{ user_subscription.end_date|date:"d/m/Y" }}
                 </p>
               {% else %}
-                <a href="{% url 'subscribe' %}" class="text-red-400 text-xs hover:underline">Non abonné • S'abonner</a>
+                <a href=" " class="text-red-400 text-xs hover:underline">Non abonné • S'abonner</a>
               {% endif %}
             </div>
           </div>
@@ -169,16 +169,16 @@
 
   <!-- Desktop Navigation Pills -->
   <div id="nav-pills" class="hidden md:flex items-center gap-2 mb-4 md:mb-0 text-white">
-    <a href="{% url 'home' %}" class="pill {% if request.path == '/' %}active{% endif %}">Home</a>
-    <a href="{% url 'series' %}" class="pill {% if request.path == '/series' %}active{% endif %}">Séri</a>
-    <a href="{% url 'films' %}" class="pill {% if request.path == '/films' %}active{% endif %}">Film</a>
-    <a href="{% url 'shorts' %}" class="pill {% if request.path == '/short_videos' %}active{% endif %}">Short</a>
-    <a href="{% url 'photos' %}" class="pill {% if request.path == '/photos' %}active{% endif %}">Photo</a>
-    <a href="{% url 'genres' %}" class="pill {% if request.path == '/genres' %}active{% endif %}">Genre</a>
+    <a href=" " class="pill {% if request.path == '/' %}active{% endif %}">Home</a>
+    <a href=" " class="pill {% if request.path == '/series' %}active{% endif %}">Séri</a>
+    <a href=" " class="pill {% if request.path == '/films' %}active{% endif %}">Film</a>
+    <a href=" " class="pill {% if request.path == '/short_videos' %}active{% endif %}">Short</a>
+    <a href=" " class="pill {% if request.path == '/photos' %}active{% endif %}">Photo</a>
+    <a href=" " class="pill {% if request.path == '/genres' %}active{% endif %}">Genre</a>
   </div>
 
   <!-- Desktop Search + Profile -->
-  <form action="{% url 'search' %}" method="get" class="hidden md:flex items-center gap-4 mt-4 md:mt-0">
+  <form action="" method="get" class="hidden md:flex items-center gap-4 mt-4 md:mt-0">
     <div class="relative flex items-center">
       <input
         type="text"
