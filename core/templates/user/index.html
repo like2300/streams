@@ -1,0 +1,40 @@
+{% extends 'baseApp.html' %}
+
+{% block title %}Accueil - StreamApp{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div class="bg-white shadow-md rounded-lg">
+        <div class="px-8 py-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">👋 Bienvenue sur StreamApp</h1>
+            
+            <p class="text-gray-600 mb-6">
+                Cette application vous permet de partager des vidéos et des photos avec vos amis et collègues.
+            </p>
+            
+            <div class="flex flex-col gap-4">
+                <a href="{% url 'upload_video_uppy' %}" class="pill-mobile">
+                    <div class="card bg-white shadow-md rounded-lg">
+                        <div class="card-body">
+                            <h2 class="card-title">📹 Uploader une vidéo</h2>
+                            <p class="card-text">
+                                Ajoutez une vidéo à votre compte ou partagez-la avec vos amis.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                <a href="{% url 'upload_photo_uppy' %}" class="pill-mobile">
+                    <div class="card bg-white shadow-md rounded-lg">
+                        <div class="card-body">
+                            <h2 class="card-title">📷 Uploader une photo</h2>
+                            <p class="card-text">
+                                Ajoutez une photo à votre compte ou partagez-la avec vos amis.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

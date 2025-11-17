@@ -1,0 +1,287 @@
+
+{% load static %} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Auth{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"  rel="stylesheet">
+    <!-- CSS pour la navigation mobile -->
+    <link href="/static/css/mobile-nav.css" rel="stylesheet">
+    <style type="text/tailwindcss">
+                    @layer utilities {
+                    .text-shadow {
+                        text-shadow: 0px 4px 16px #ffffff;
+                    }
+                    .gradient-border {
+                        position: relative;
+                    }
+                    .gradient-border::before {
+                        content: "";
+                        position: absolute;
+                        inset: 0;
+                        padding: 2px;
+                        border-radius: 23px;
+                        background: linear-gradient(180deg, rgba(255, 255, 255, 0.29) 0%, rgba(153, 153, 153, 0.29) 100%);
+                        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                        -webkit-mask-composite: xor;
+                        mask-composite: exclude;
+                        pointer-events: none;
+                    }
+                    }
+            
+            .group:hover .card-text {
+                opacity: 1;
+            }
+
+            .card-text {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+                padding: 1rem;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+                color: white;
+                z-index: 10;
+            }
+    </style>
+
+    <style>
+            
+        video::-webkit-media-controls {
+          display: none !important;
+        }
+
+        .progress-bar {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0%;
+          height: 3px;
+          background: #a21892;
+          animation: loading 5s linear forwards;
+        }
+
+        @keyframes loading {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+
+        .video-container {
+          position: relative;
+          width: 100%;
+          max-width: 400px;
+          height: 100vh;
+          overflow: hidden;
+          scroll-snap-align: start;
+        }
+
+        .video-wrapper {
+          scroll-snap-type: y mandatory;
+          overflow-y: scroll;
+          -webkit-overflow-scrolling: touch;
+          height: 100vh;
+          scrollbar-width: none;
+        }
+
+        .video-wrapper::-webkit-scrollbar {
+          display: none;
+        }
+
+        .overlay-text {
+          transition: opacity 0.3s ease-in-out;
+        }
+
+        .video-wrapper .video-container:hover .overlay-text {
+          opacity: 1;
+        }
+    </style>
+ 
+ 
+        <style>
+              #mobile-menu {
+              animation: fadeInDown 0.3s ease-in-out;
+            }
+
+            @keyframes fadeInDown {
+              from {
+                opacity: 0;
+                transform: translateY(-10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+          .pill {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.5rem; /* gap-2 */
+                        padding: 0.5rem; /* p-2 */
+                        border-radius: 0.5rem; /* rounded-lg */
+                        transition: all 0.3s ease; /* transition-all duration-300 */
+                        cursor: pointer;
+                    }
+
+                    .pill:hover {
+                        background-color: rgba(255, 255, 255, 0.1); /* hover:bg-white/10 */
+                    }
+
+                    .pill.active {
+                        background-color: rgba(255, 255, 255, 0.2); /* bg-white/20 */
+                        border-radius: 9999px; /* rounded-full */
+                    }
+         </style>
+
+
+        
+         <script>
+              document.addEventListener("DOMContentLoaded", function () {
+                  // Gestion des onglets pills
+                  const pills = document.querySelectorAll('.pill');
+                  const mobileMenu = document.getElementById("mobile-menu");
+                  const hamburger = document.querySelector(".bx-menu");
+
+                  // Activer/désactiver le menu mobile
+                  hamburger.addEventListener("click", () => {
+                  mobileMenu.classList.toggle("hidden");
+                  });
+
+                  // Fermer le menu mobile quand on clique sur un lien
+                  document.querySelectorAll('.pill-mobile').forEach(link => {
+                  link.addEventListener("click", () => {
+                      mobileMenu.classList.add("hidden");
+                  });
+                  });
+
+                  // Gestion de l'état actif via URL
+                  const currentPath = window.location.pathname;
+                  pills.forEach(pill => {
+                  const link = pill.getAttribute('href');
+                  if (link === currentPath) {
+                      pill.classList.add('active');
+                  } else {
+                      pill.classList.remove('active');
+                  }
+                  });
+
+                  // Gestion du scroll sur la nav
+                  window.addEventListener('scroll', () => {
+                  const nav = document.querySelector('nav');
+                  if (window.scrollY > 50) {
+                      nav.classList.add('scrolled');
+                  } else {
+                      nav.classList.remove('scrolled');
+                  }
+                  });
+              });
+        </script>
+
+    
+
+
+</head>
+<body class="bg-[#0f0203] relative">
+            {% include "partials/_popup.html" %}
+    
+    <!-- loader include -->
+        {% include "partials/_loader.html" %}
+
+
+      <!-- Fond ellipse (simulé) -->
+      <div class="absolute inset-0 bg-gradient-to-r from-pink-900 to-transparent opacity-30 z-[-1]"></div>
+ 
+ 
+
+
+    <div class="container mx-auto px-4 max-w-screen-xl">
+
+        {% include "partials/_nav.html" %}
+        <!-- Popup Modal -->
+        
+        {% block content %}
+            
+        {% endblock %}
+
+
+
+
+        {% include "partials/_profile.html" %}
+        
+
+  
+        {% block extra_js %}{% endblock extra_js %}
+        
+        <!-- JavaScript pour la navigation mobile -->
+        <script src="/static/js/mobile-nav.js"></script>
+
+</div>
+ 
+
+
+
+
+
+
+
+
+
+
+
+      <script>
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarButton = document.getElementById('open-sidebar');
+        
+        openSidebarButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // Close the sidebar when clicking outside of it
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !openSidebarButton.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+        }
+    </script>
+
+
+
+
+    {% include "partials/style.html" %}
+
+
+
+
+
+
+
+
+
+
+</body>
+
+
+
+
+
+
+
+
+
+
+
+ 
+</html>

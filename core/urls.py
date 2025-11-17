@@ -35,7 +35,7 @@ administration_patterns = [
 
 
 user_patterns = [
-    path('index/', views.index, name='index'),
+    path('', views.index, name='index'),
 ]
 
 
