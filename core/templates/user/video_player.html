@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Like
     document.getElementById('favorite-btn')?.addEventListener('click', function () {
         if (!isAuthenticated) return alert('Connectez-vous pour liker.');
-        fetch(`/video/${videoId}/like/`, {
+        fetch(`{% url 'toggle_video_like' video.id %}`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData(this);
         formData.append('text', text);
 
-        fetch(`/video/${videoId}/comment/`, {
+        fetch(`{% url 'add_video_comment' video.id %}`, {
             method: 'POST',
             body: formData 
         })

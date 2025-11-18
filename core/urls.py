@@ -38,8 +38,13 @@ user_patterns = [
     path('', views.index, name='index'),
     path('video/player/<int:pk>/', views.video_player, name='video_player'),
 
-    path('video/<int:video_id>/like/', views.toggle_like, name='toggle_like'),
-    path('video/<int:video_id>/comment/', views.add_comment, name='add_comment'),
+    # Like/Comment URLs
+    path('video/<int:video_id>/like/', views.toggle_video_like, name='toggle_video_like'),
+    path('video/<int:video_id>/comment/', views.add_video_comment, name='add_video_comment'),
+    path('photo/<int:photo_id>/like/', views.toggle_photo_like, name='toggle_photo_like'),
+    path('photo/<int:photo_id>/like-status/', views.get_photo_like_status, name='get_photo_like_status'),  # New URL for checking like status
+    path('photo/<int:photo_id>/comment/', views.add_photo_comment, name='add_photo_comment'),
+    path('photo/<int:photo_id>/comments/', views.get_photo_comments, name='get_photo_comments'),
 
     path('search/', views.search_results, name='search_results'),  
 

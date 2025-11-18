@@ -50,11 +50,172 @@
         {% endif %}
 
         {% if photo.description %}
-            <div class="text-gray-700">
+            <div class="text-gray-700 mb-6">
                 <h3 class="font-semibold mb-2">Description</h3>
                 <p>{{ photo.description }}</p>
             </div>
         {% endif %}
+
+        <!-- Like and Comment buttons -->
+        <div class="flex items-center gap-4 mt-6 pt-4 border-t">
+            <button id="like-btn" class="flex items-center gap-1 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-full text-sm transition">
+                <i id="like-icon" class='bx bx-heart text-lg'></i>
+                <span id="like-count" class="font-medium">0</span>
+            </button>
+            <button id="comment-btn" class="flex items-center gap-1 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-full text-sm transition">
+                <i class='bx bx-message-rounded text-lg'></i>
+                <span id="comment-count" class="font-medium">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold mb-4">Commentaires</h3>
+        
+        <div id="comments-list" class="space-y-4 mb-6">
+            <!-- Comments will be loaded here -->
+        </div>
+
+        {% if user.is_authenticated %}
+        <form id="comment-form" class="border-t pt-4">
+            <textarea
+                id="comment-textarea"
+                placeholder="Écrivez un commentaire..."
+                class="w-full bg-gray-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                rows="3"
+                maxlength="200"
+                required></textarea>
+            <div class="mt-3 flex justify-end">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600">
+                    Publier le commentaire
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-gray-500">Connectez-vous pour commenter.</p>
+        {% endif %}
     </div>
 </div>
+
+<!-- Boxicons -->
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+<script>
+    const photoId = {{ photo.id }};
+    
+    function loadLikeState() {
+        fetch(`/photo/${photoId}/like-status/`)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('like-count').textContent = data.likes_count;
+            document.getElementById('like-icon').className = data.is_liked
+                ? 'bx bxs-heart text-lg text-red-500'
+                : 'bx bx-heart text-lg';
+        });
+    }
+    
+    function toggleLike() {
+        fetch(`/photo/${photoId}/like/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('like-count').textContent = data.likes_count;
+                document.getElementById('like-icon').className = data.is_liked
+                    ? 'bx bxs-heart text-lg text-red-500'
+                    : 'bx bx-heart text-lg';
+            }
+        });
+    }
+    
+    function loadComments(photoId) {
+        const list = document.getElementById('comments-list');
+        list.innerHTML = '<p class="text-gray-400">Chargement...</p>';
+        fetch(`/photo/${photoId}/comments/`)
+        .then(r => r.json())
+        .then(data => {
+            list.innerHTML = '';
+            if (data.comments && data.comments.length > 0) {
+                data.comments.forEach(comment => {
+                    const el = document.createElement('div');
+                    el.className = 'flex gap-3 p-3 bg-gray-50 rounded-lg';
+                    el.innerHTML = `
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-white text-sm">
+                            ${comment.user.first_initial}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <p class="font-medium">${comment.user.username}</p>
+                                <span class="text-gray-500 text-xs">${comment.created_at}</span>
+                            </div>
+                            <p class="text-gray-700 text-sm mt-1">${comment.text}</p>
+                        </div>
+                    `;
+                    list.appendChild(el);
+                });
+            } else {
+                list.innerHTML = '<p class="text-gray-400 text-center py-4">Aucun commentaire pour le moment.</p>';
+            }
+        });
+    }
+    
+    function addComment(event) {
+        event.preventDefault();
+        const textInput = document.getElementById('comment-textarea');
+        const text = textInput.value.trim();
+        if (!text || !photoId) return;
+
+        const formData = new FormData();
+        formData.append('text', text);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch(`/photo/${photoId}/comment/`, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                textInput.value = '';
+                const list = document.getElementById('comments-list');
+                if (list.querySelector('p')) list.innerHTML = '';
+                const el = document.createElement('div');
+                el.className = 'flex gap-3 p-3 bg-gray-50 rounded-lg';
+                el.innerHTML = `
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-white text-sm">
+                        {{ user.username.0|upper }}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <p class="font-medium">{{ user.username }}</p>
+                            <span class="text-gray-500 text-xs">à l'instant</span>
+                        </div>
+                        <p class="text-gray-700 text-sm mt-1">${data.comment.text}</p>
+                    </div>
+                `;
+                list.prepend(el);
+
+                // Update comment count
+                const countEl = document.getElementById('comment-count');
+                countEl.textContent = parseInt(countEl.textContent) + 1;
+            } else {
+                alert(data.error || 'Impossible d’ajouter le commentaire.');
+            }
+        });
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        loadLikeState();
+        loadComments(photoId);
+    });
+    
+    // Event Listeners
+    document.getElementById('like-btn')?.addEventListener('click', toggleLike);
+    document.getElementById('comment-form')?.addEventListener('submit', addComment);
+</script>
 {% endblock %}

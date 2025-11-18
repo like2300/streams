@@ -44,7 +44,7 @@
   </div>
 
   <!-- ☰ Menu Mobile -->
-  <div id="mobile-menu" class="md:hidden fixed inset-0 z-[997] bg-[#0f0203] h-screen -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto pt-20 px-6 pb-8">
+  <div id="mobile-menu" class="md:hidden fixed inset-0 z-[997] bg-[#0f0203] w-screen h-screen -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto pt-20 px-6 pb-8">
     <nav class="flex flex-col gap-4 mb-8">
       <a href="{% url 'index' %}" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/' %}bg-white/10{% endif %}">
         <i class='bx bx-home text-2xl'></i>

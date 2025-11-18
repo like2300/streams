@@ -89,7 +89,7 @@
 
     <div class="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
       {% for photo in photos %}
-        <div class="break-inside-avoid group cursor-pointer" onclick="openSwipeModal({{ photo.id }})">
+        <div class="break-inside-avoid group cursor-pointer"  onclick="openSwipeModal({ id: {{ photo.id }}, type: 'photo' })">
           <div class="relative overflow-hidden rounded-xl shadow-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl">
             <img
               src="{{ photo.photo_file|default:'' }}"
@@ -107,11 +107,13 @@
   </section>
 </div>
 
-<!-- Modale de Swipe Responsive -->
+
+
+<!-- Modale de Swipe avec Like & Commentaires -->
 <div id="swipe-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
   <div class="relative w-full max-w-4xl max-h-[90vh] bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-    <img id="swipe-img" class="w-full h-auto max-h-[70vh] object-contain bg-black" src="" alt="Photo" />
-    
+    <img id="swipe-img" class="w-full h-auto max-h-[60vh] object-contain bg-black" src="" alt="Photo" />
+
     <div class="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-transparent to-transparent text-white">
       <h3 id="swipe-title" class="text-xl font-bold"></h3>
       <p id="swipe-desc" class="text-sm text-gray-200 mt-1 line-clamp-2"></p>
@@ -121,99 +123,160 @@
       </div>
     </div>
 
-    <button onclick="prevPhoto()" class="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition">
+    <!-- Boutons Like / Commentaires -->
+    <div class="absolute top-4 left-4 flex gap-3">
+      <button id="like-btn" class="flex items-center gap-1 bg-black/60 hover:bg-black/80 px-3 py-1.5 rounded-full text-white text-sm transition">
+        <i id="like-icon" class='bx bx-heart text-lg'></i>
+        <span id="like-count" class="font-medium">0</span>
+      </button>
+      <button id="comment-btn" class="flex items-center gap-1 bg-black/60 hover:bg-black/80 px-3 py-1.5 rounded-full text-white text-sm transition">
+        <i class='bx bx-message-rounded text-lg'></i>
+        <span id="comment-count" class="font-medium">0</span>
+      </button>
+    </div>
+
+    <!-- Navigation -->
+    <button id="prev-btn" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition">
       <i class='bx bx-chevron-left text-xl'></i>
     </button>
-    <button onclick="nextPhoto()" class="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition">
+    <button id="next-btn" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition">
       <i class='bx bx-chevron-right text-xl'></i>
     </button>
-    <button onclick="closeSwipeModal()" class="absolute top-4 right-4 w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition">
+    <button id="close-swipe" class="absolute top-4 right-4 w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition">
       <i class='bx bx-x text-xl'></i>
     </button>
 
+    <!-- Téléchargement -->
     {% if has_active_subscription %}
-      <a id="download-btn" href="#" download class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#a21892] hover:bg-[#8a147d] text-white px-6 py-2.5 rounded-full text-sm font-medium transition-colors z-10">
+      <a id="download-btn" href="#" download class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1769c2] hover:bg-[#178cbe] text-white px-6 py-2.5 rounded-full text-sm font-medium transition">
         Télécharger
       </a>
     {% else %}
-      <button id="download-btn" onclick="alert('Abonnez-vous pour télécharger !')" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white px-6 py-2.5 rounded-full text-sm font-medium">
+      <button id="download-disabled" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-600 text-white px-6 py-2.5 rounded-full text-sm font-medium">
         Télécharger
       </button>
     {% endif %}
   </div>
 </div>
 
-<!-- Scripts -->
+<!-- Sidebar des commentaires -->
+<div id="comments-sidebar" class="fixed top-0 right-0 h-full w-full max-w-md bg-[#050e16] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 overflow-hidden">
+  <div class="p-6 flex flex-col h-full">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-white">Commentaires</h2>
+      <button id="close-comments" class="text-gray-400 hover:text-white">
+        <i class='bx bx-x text-2xl'></i>
+      </button>
+    </div>
+
+    <div id="comments-list" class="flex-1 overflow-y-auto space-y-4 pb-6"></div>
+
+    <form id="comment-form" class="border-t border-gray-800 pt-4">
+      <textarea
+        id="comment-textarea"
+        placeholder="Écrivez un commentaire..."
+        class="w-full bg-gray-900 text-white rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#1769c2] resize-none"
+        rows="3"
+        maxlength="200"
+        required></textarea>
+      <div class="mt-3 flex justify-end gap-3">
+        <button type="button" id="cancel-comment" class="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-600">Annuler</button>
+        <button type="submit" class="bg-[#1769c2] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#178cbe]">Publier</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="comments-overlay" class="fixed inset-0 bg-black/50 z-49 hidden"></div>
+
+
+
+
 <script>
-  // --- Slider ---
-  const slides = [
-    {% for slide in slides %}
-      {
-        image: "{{ slide.image|escapejs }}",
-        text: "{{ slide.text|escapejs }}",
-        videoId: "{{ slide.video_id|escapejs }}"
-      }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ];
+  // === SLIDER LOGIC ===
+  document.addEventListener('DOMContentLoaded', function () {
+    const slides = {{ slides|safe }};
+    if (!slides || slides.length === 0) return;
 
-  let currentIndex = 0;
-  const slider = document.getElementById("slider");
-  const slideText = document.getElementById("slide-text");
-  const dotsContainer = document.getElementById("dots");
-  const prevBtn = document.getElementById("prev");
-  const nextBtn = document.getElementById("next");
+    const slider = document.getElementById('slider');
+    const slideText = document.getElementById('slide-text');
+    const dotsContainer = document.getElementById('dots');
+    let currentIndex = 0;
+    let intervalId = null;
 
-  function createDots() {
-    dotsContainer.innerHTML = '';
-    slides.forEach((_, index) => {
-      const dot = document.createElement('div');
-      dot.className = `w-4 h-4 rounded-full cursor-pointer ${index === currentIndex ? 'bg-[#ba0fb49e]' : 'bg-white'}`;
-      dot.addEventListener("click", () => goToSlide(index));
-      dotsContainer.appendChild(dot);
-    });
-  }
-
-  function updateSlider() {
-    if (slides.length === 0) return;
-    slider.style.backgroundImage = `url('${slides[currentIndex].image}')`;
-    slideText.textContent = slides[currentIndex].text;
-    createDots();
-  }
-
-  function goToSlide(index) {
-    currentIndex = index;
-    updateSlider();
-    resetAutoPlay();
-  }
-
-  function nextSlide() {
-    currentIndex = (currentIndex + 1) % slides.length;
-    updateSlider();
-  }
-
-  function prevSlide() {
-    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-    updateSlider();
-  }
-
-  let autoPlayInterval = setInterval(nextSlide, 5000);
-  function resetAutoPlay() {
-    clearInterval(autoPlayInterval);
-    autoPlayInterval = setInterval(nextSlide, 5000);
-  }
-
-  nextBtn?.addEventListener("click", () => { nextSlide(); resetAutoPlay(); });
-  prevBtn?.addEventListener("click", () => { prevSlide(); resetAutoPlay(); });
-  slider?.addEventListener("click", () => {
-    if (slides[currentIndex]?.videoId) {
-      window.location.href = `/video/player/${slides[currentIndex].videoId}/`;
+    function createDots() {
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.setAttribute('aria-label', `Aller à la slide ${i + 1}`);
+        dot.className = 'w-2.5 h-2.5 rounded-full transition-colors duration-300';
+        dot.addEventListener('click', () => {
+          goToSlide(i);
+          resetInterval();
+        });
+        dotsContainer.appendChild(dot);
+      });
     }
+
+    function updateDots(index) {
+      Array.from(dotsContainer.children).forEach((dot, i) => {
+        dot.classList.toggle('bg-white', i === index);
+        dot.classList.toggle('bg-white/40', i !== index);
+      });
+    }
+
+    function goToSlide(index) {
+      currentIndex = index;
+      const slide = slides[index];
+      
+      // Preload image
+      const img = new Image();
+      img.onload = () => {
+        slider.style.backgroundImage = `url(${slide.image})`;
+        slideText.textContent = slide.text;
+        slider.parentElement.setAttribute('onclick', `window.location.href='/video/player/${slide.video_id}/'`);
+        updateDots(index);
+      };
+      img.src = slide.image;
+    }
+
+    function nextSlide() {
+      currentIndex = (currentIndex + 1) % slides.length;
+      goToSlide(currentIndex);
+    }
+
+    function prevSlide() {
+      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+      goToSlide(currentIndex);
+    }
+
+    function startInterval() {
+      intervalId = setInterval(nextSlide, 5000);
+    }
+
+    function resetInterval() {
+      clearInterval(intervalId);
+      startInterval();
+    }
+
+    document.getElementById('next').addEventListener('click', (e) => {
+      e.stopPropagation();
+      nextSlide();
+      resetInterval();
+    });
+
+    document.getElementById('prev').addEventListener('click', (e) => {
+      e.stopPropagation();
+      prevSlide();
+      resetInterval();
+    });
+
+    createDots();
+    goToSlide(0);
+    startInterval();
   });
 
-  createDots();
-  updateSlider();
 
-  // --- Photo Swipe Modal ---
+  // === MODAL & COMMENTS LOGIC ===
   const photoList = [
     {% for photo in photos %}
       {
@@ -223,35 +286,26 @@
         description: "{{ photo.description|escapejs|default:'' }}",
         author: "{{ photo.user.username|escapejs }}",
         date: "{{ photo.created_at|date:'d/m/Y'|escapejs }}",
-        downloadUrl: "{% if has_active_subscription %}{{ photo.photo_file|escapejs }}{% endif %}"
+        comment_count: {{ photo.comment_count }}
       },
     {% endfor %}
   ];
 
   let currentPhotoIndex = 0;
+  let currentPhotoId = null;
 
-  function openSwipeModal(id) {
-    const photo = photoList.find(p => p.id === id);
-    if (!photo) return;
-    currentPhotoIndex = photoList.indexOf(photo);
+  function openSwipeModal(data) {
+    currentPhotoIndex = photoList.findIndex(p => p.id === data.id);
+    if (currentPhotoIndex === -1) return;
+    
     updateSwipeModal();
     document.getElementById('swipe-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
 
-  function updateSwipeModal() {
-    const photo = photoList[currentPhotoIndex];
-    if (!photo) return;
-    document.getElementById('swipe-img').src = photo.url;
-    document.getElementById('swipe-title').textContent = photo.title || 'Sans titre';
-    document.getElementById('swipe-desc').textContent = photo.description || '';
-    document.getElementById('swipe-author').textContent = photo.author;
-    document.getElementById('swipe-date').textContent = photo.date;
-
-    const btn = document.getElementById('download-btn');
-    if (btn && photo.downloadUrl) {
-      if (btn.tagName === 'A') btn.href = photo.downloadUrl;
-    }
+  function closeSwipeModal() {
+    document.getElementById('swipe-modal').classList.add('hidden');
+    document.body.style.overflow = '';
   }
 
   function nextPhoto() {
@@ -268,16 +322,173 @@
     }
   }
 
-  function closeSwipeModal() {
-    document.getElementById('swipe-modal').classList.add('hidden');
-    document.body.style.overflow = '';
+  function updateSwipeModal() {
+    const photo = photoList[currentPhotoIndex];
+    if (!photo) return;
+    currentPhotoId = photo.id;
+    document.getElementById('swipe-img').src = photo.url;
+    document.getElementById('swipe-title').textContent = photo.title || 'Sans titre';
+    document.getElementById('swipe-desc').textContent = photo.description || '';
+    document.getElementById('swipe-author').textContent = photo.author;
+    document.getElementById('swipe-date').textContent = photo.date;
+    document.getElementById('comment-count').textContent = photo.comment_count;
+    
+    const downloadBtn = document.getElementById('download-btn');
+    if (downloadBtn) downloadBtn.href = photo.url;
+
+    loadLikeState();
   }
 
-  // Fermeture
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSwipeModal(); });
-  document.getElementById('swipe-modal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'swipe-modal') closeSwipeModal();
+  function loadLikeState() {
+    if (!currentPhotoId) return;
+    fetch(`/photo/${currentPhotoId}/like-status/`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('like-count').textContent = data.likes_count;
+      document.getElementById('like-icon').className = data.is_liked
+        ? 'bx bxs-heart text-lg text-red-500'
+        : 'bx bx-heart text-lg';
+    });
+  }
+
+  function toggleLike() {
+    if (!currentPhotoId) return;
+    fetch(`/photo/${currentPhotoId}/like/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('like-count').textContent = data.likes_count;
+        document.getElementById('like-icon').className = data.is_liked
+          ? 'bx bxs-heart text-lg text-red-500'
+          : 'bx bx-heart text-lg';
+      }
+    });
+  }
+
+  function openComments() {
+    if (!currentPhotoId) return;
+    loadComments(currentPhotoId);
+    document.getElementById('comments-sidebar').classList.remove('translate-x-full');
+    document.getElementById('comments-overlay').classList.remove('hidden');
+    closeSwipeModal();
+  }
+
+  function closeComments() {
+    document.getElementById('comments-sidebar').classList.add('translate-x-full');
+    document.getElementById('comments-overlay').classList.add('hidden');
+  }
+
+  function loadComments(photoId) {
+    const list = document.getElementById('comments-list');
+    list.innerHTML = '<p class="text-gray-400">Chargement...</p>';
+    fetch(`/photo/${photoId}/comments/`)
+      .then(r => r.json())
+      .then(data => {
+        list.innerHTML = '';
+        if (data.comments && data.comments.length > 0) {
+          data.comments.forEach(comment => {
+            const el = document.createElement('div');
+            el.className = 'flex gap-3';
+            el.innerHTML = `
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-white">
+                ${comment.user.first_initial}
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <p class="font-medium text-white">${comment.user.username}</p>
+                  <span class="text-gray-500 text-xs">${comment.created_at}</span>
+                </div>
+                <p class="text-gray-300 text-sm mt-1">${comment.text}</p>
+              </div>
+            `;
+            list.appendChild(el);
+          });
+        } else {
+          list.innerHTML = '<p class="text-gray-400 text-center">Aucun commentaire pour le moment.</p>';
+        }
+      });
+  }
+
+  function addComment(event) {
+    event.preventDefault();
+    const textInput = document.getElementById('comment-textarea');
+    const text = textInput.value.trim();
+    if (!text || !currentPhotoId) return;
+
+    const formData = new FormData();
+    formData.append('text', text);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch(`/photo/${currentPhotoId}/comment/`, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        textInput.value = '';
+        // Optimistically add comment to UI
+        const list = document.getElementById('comments-list');
+        if (list.querySelector('p')) list.innerHTML = ''; // Clear "no comments" message
+        const el = document.createElement('div');
+        el.className = 'flex gap-3';
+        el.innerHTML = `
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-white">
+            {{ request.user.username.0|upper }}
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="font-medium text-white">{{ request.user.username }}</p>
+              <span class="text-gray-500 text-xs">à l'instant</span>
+            </div>
+            <p class="text-gray-300 text-sm mt-1">${data.comment.text}</p>
+          </div>
+        `;
+        list.prepend(el);
+        
+        // Update comment count on modal
+        const countEl = document.getElementById('comment-count');
+        countEl.textContent = parseInt(countEl.textContent) + 1;
+        photoList[currentPhotoIndex].comment_count++;
+
+      } else {
+        alert(data.error || 'Impossible d’ajouter le commentaire.');
+      }
+    });
+  }
+
+  // === ÉVÉNEMENTS ===
+  document.getElementById('like-btn')?.addEventListener('click', toggleLike);
+  document.getElementById('comment-btn')?.addEventListener('click', openComments);
+  document.getElementById('close-swipe')?.addEventListener('click', closeSwipeModal);
+  document.getElementById('prev-btn')?.addEventListener('click', prevPhoto);
+  document.getElementById('next-btn')?.addEventListener('click', nextPhoto);
+  document.getElementById('close-comments')?.addEventListener('click', closeComments);
+  document.getElementById('cancel-comment')?.addEventListener('click', closeComments);
+  document.getElementById('comments-overlay')?.addEventListener('click', closeComments);
+  document.getElementById('comment-form')?.addEventListener('submit', addComment);
+  document.getElementById('download-disabled')?.addEventListener('click', () => {
+    alert('Abonnez-vous pour télécharger !');
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const sidebar = document.getElementById('comments-sidebar');
+      const modal = document.getElementById('swipe-modal');
+      if (sidebar && !sidebar.classList.contains('translate-x-full')) {
+        closeComments();
+      } else if (modal && !modal.classList.contains('hidden')) {
+        closeSwipeModal();
+      }
+    }
   });
 </script>
+
+
+
 
 {% endblock %}

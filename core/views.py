@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import logging
 import uuid
@@ -32,6 +33,7 @@ from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
 from django.db.models import Q
+from django.db.models import Count
 from .models import Video, Photo
 
 def search_results(request):
@@ -134,8 +136,8 @@ def upload_file(request):
         # Create a unique filename
         original_name = uploaded_file.name
         safe_name = re.sub(r'[^a-zA-Z0-9._-]', '_', original_name)
-        unique_name = f"{uuid.uuid4().hex[:12]}_{safe_name}"
-        key = f"{upload_type}/{unique_name}"
+        unique_name = "{}_{}".format(uuid.uuid4().hex[:12], safe_name)
+        key = "{}/{}".format(upload_type, unique_name)
 
         # Upload to R2
         s3 = boto3.client(
@@ -676,7 +678,7 @@ class ReplaceMediaView(View):
 
 def index(request):
     videos = Video.objects.all()[:6]
-    photos = Photo.objects.all()[:12]
+    photos = Photo.objects.all().annotate(comment_count=Count('comment'))[:12]
     slider_items = SliderItem.objects.select_related('video').all()
     slides = []
     for item in slider_items:
@@ -757,55 +759,92 @@ def video_player(request, pk):
         'recommendations': similar_videos  # Pour le template existant
     })
 
+
+
+
 @require_POST
 @login_required
-def toggle_like(request, video_id):
-    """Vue AJAX pour ajouter/retirer un like sur une vidéo."""
-    video = get_object_or_404(Video, id=video_id)
-    like, created = Like.objects.get_or_create(user=request.user, video=video)
-    
+def toggle_video_like(request, video_id):
+    user = request.user
+    like, created = Like.objects.get_or_create(user=user, video_id=video_id, photo_id__isnull=True)
     if not created:
-        # Si le like existait déjà, le supprimer
         like.delete()
         is_liked = False
     else:
         is_liked = True
+    count = Like.objects.filter(video_id=video_id).count()
+    return JsonResponse({'success': True, 'is_liked': is_liked, 'likes_count': count})
+
+def get_photo_like_status(request, photo_id):
+    """Check if the current user has liked a specific photo"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'is_liked': False, 'likes_count': 0})
     
-    # Compter le nombre total de likes
-    likes_count = Like.objects.filter(video=video).count()
+    user = request.user
+    is_liked = Like.objects.filter(user=user, photo_id=photo_id).exists()
+    likes_count = Like.objects.filter(photo_id=photo_id).count()
     
-    return JsonResponse({
-        'success': True,
-        'is_liked': is_liked,
-        'likes_count': likes_count
-    })
+    return JsonResponse({'is_liked': is_liked, 'likes_count': likes_count})
 
 @require_POST
 @login_required
-def add_comment(request, video_id):
-    """Vue AJAX pour ajouter un commentaire à une vidéo."""
-    video = get_object_or_404(Video, id=video_id)
+def toggle_photo_like(request, photo_id):
+    user = request.user
+    # Check if user already liked this photo
+    try:
+        like = Like.objects.get(user=user, photo_id=photo_id)
+        # If like exists, delete it (unlike)
+        like.delete()
+        is_liked = False
+    except Like.DoesNotExist:
+        # If like doesn't exist, create it (like)
+        Like.objects.create(user=user, photo_id=photo_id, video_id=None)
+        is_liked = True
+    count = Like.objects.filter(photo_id=photo_id).count()
+    return JsonResponse({'success': True, 'is_liked': is_liked, 'likes_count': count})
+
+
+@require_POST
+@login_required
+def add_video_comment(request, video_id):
     text = request.POST.get('text', '').strip()
-    
+    user = request.user
+
     if not text:
-        return JsonResponse({'success': False, 'error': 'Le commentaire ne peut pas être vide.'})
-    
-    comment = Comment.objects.create(
-        user=request.user,
-        video=video,
-        text=text
-    )
-    
+        return JsonResponse({'success': False, 'error': 'Commentaire vide'})
+
+    comment = Comment.objects.create(user=user, video_id=video_id, text=text)
+
     return JsonResponse({
         'success': True,
         'comment': {
             'id': comment.id,
             'text': comment.text,
             'username': comment.user.username,
-            'created_at': comment.created_at.strftime('%d %b %Y à %H:%M')
+            'created_at': comment.created_at.strftime('%d %b %Y'),
         }
     })
 
+@require_POST
+@login_required
+def add_photo_comment(request, photo_id):
+    text = request.POST.get('text', '').strip()
+    user = request.user
+
+    if not text:
+        return JsonResponse({'success': False, 'error': 'Commentaire vide'})
+
+    comment = Comment.objects.create(user=user, photo_id=photo_id, text=text)
+
+    return JsonResponse({
+        'success': True,
+        'comment': {
+            'id': comment.id,
+            'text': comment.text,
+            'username': comment.user.username,
+            'created_at': comment.created_at.strftime('%d %b %Y'),
+        }
+    })
 
 
 def video_user(request):
@@ -815,10 +854,28 @@ def video_user(request):
     return render(request, 'user/video_alll.html', {'videos': videos, 'categories': categories})
 
 def photo_user(request):
-    photos = Photo.objects.all()
+    photos = Photo.objects.all().annotate(comment_count=Count('comment'))
     categories = Category.objects.all()
     
     return render(request, 'user/photo.html', {'photos': photos, 'categories': categories})
+
+
+def get_photo_comments(request, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+    comments = Comment.objects.filter(photo=photo).order_by('-created_at').select_related('user')
+    
+    comments_data = [{
+        'id': c.id,
+        'text': c.text,
+        'user': {
+            'username': c.user.username,
+            'first_initial': c.user.username[0].upper() if c.user.username else '?'
+        },
+        'created_at': c.created_at.strftime('%d %b %Y, %H:%M')
+    } for c in comments]
+    
+    return JsonResponse({'comments': comments_data})
+
 
 
 
