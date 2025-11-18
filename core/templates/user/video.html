@@ -1,0 +1,12 @@
+{% extends "baseApp.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="mt-16 px-4">
+  <h2 class="text-white text-4xl mb-8">{{ title }}</h2>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {% for video in videos %}
+      {% include "partials/_videos.html" %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

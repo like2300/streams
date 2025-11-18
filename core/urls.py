@@ -36,6 +36,17 @@ administration_patterns = [
 
 user_patterns = [
     path('', views.index, name='index'),
+    path('video/player/<int:pk>/', views.video_player, name='video_player'),
+
+    path('video/<int:video_id>/like/', views.toggle_like, name='toggle_like'),
+    path('video/<int:video_id>/comment/', views.add_comment, name='add_comment'),
+
+    path('search/', views.search_results, name='search_results'),  
+
+    path('video_user/', views.video_user, name='video_user'),
+    path('photo_user/', views.photo_user, name='photo_user'),
+
+    path("change-username/", views.change_username, name="change_username"),
 ]
 
 

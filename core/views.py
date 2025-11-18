@@ -4,6 +4,7 @@ import uuid
 import re
 import os
 import boto3
+from django.utils import timezone
 from botocore.config import Config
 from django.conf import settings
 from django.http import JsonResponse
@@ -16,10 +17,65 @@ from django.views import View
 from django.core.files.uploadedfile import UploadedFile
 from django.contrib import messages
 from .forms import VideoForm, PhotoForm, PhotoEditForm, VideoEditForm
-from .models import Video, Photo, Category
- 
+from .models import (
+    Video, 
+    Photo, 
+    Category, 
+    Comment, 
+    Like, 
+    UserSubscription, 
+    SliderItem
+)
+from django.views.decorators.http import require_POST
+# import user
+from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
+from django.db.models import Q
+from .models import Video, Photo
+
+def search_results(request):
+    query = request.GET.get('q', '').strip()
+    videos = short_videos = photos = []
+
+    if query:
+        # Recherche dans les vidéos
+        videos = Video.objects.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        ).distinct()
+
+        # Tu n’as pas de champ `is_short` dans ton modèle Video,
+        # donc pour distinguer "short videos", tu peux soit :
+        #   a) Ajouter un champ `is_short = models.BooleanField(default=False)`
+        #   b) OU considérer que toutes les vidéos sont "longues" pour l’instant
+        short_videos = []  # ou une logique spécifique si tu veux les distinguer plus tard
+
+        # Recherche dans les photos
+        photos = Photo.objects.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        ).distinct()
+
+    # Vérifie l’abonnement pour le téléchargement
+    has_active_subscription = False
+    if request.user.is_authenticated:
+        from django.utils import timezone
+        from .models import UserSubscription
+        try:
+            sub = UserSubscription.objects.get(user=request.user, is_active=True)
+            has_active_subscription = sub.end_date > timezone.now()
+        except UserSubscription.DoesNotExist:
+            pass
+
+    return render(request, 'user/search_results.html', {
+        'query': query,
+        'videos': videos,
+        'short_videos': short_videos,
+        'photos': photos,
+        'has_active_subscription': has_active_subscription,
+    })
+
+
+
 
 # =====================================================================
 # VUES PUBLIQUES
@@ -43,6 +99,7 @@ def photo_detail(request, photo_id):
 # =====================================================================
 # VUES UPLOAD PAGE
 # =====================================================================
+# is staff check staff decorateur
 
 @login_required
 def upload_video_uppy(request):
@@ -614,5 +671,168 @@ class ReplaceMediaView(View):
 # =====================================================================
 # views app for user 
 # =====================================================================
+# views.py
+
+
 def index(request):
-    return render(request, 'user/index.html')
+    videos = Video.objects.all()[:6]
+    photos = Photo.objects.all()[:12]
+    slider_items = SliderItem.objects.select_related('video').all()
+    slides = []
+    for item in slider_items:
+        if item.video and item.video.cover_image:
+            image_url = item.video.cover_image
+            if not image_url.startswith('http'):
+                image_url = request.build_absolute_uri(image_url)
+            slides.append({
+                'image': image_url,
+                'text': item.video.title,
+                'video_id': item.video.id
+            })
+    if not slides and videos:
+        for video in videos[:5]:
+            if video.cover_image:
+                image_url = video.cover_image
+                if not image_url.startswith('http'):
+                    image_url = request.build_absolute_uri(image_url)
+                slides.append({
+                    'image': image_url,
+                    'text': video.title,
+                    'video_id': video.id
+                })
+
+    # 🔴 Ajout : vérification de l'abonnement
+    has_active_subscription = False
+    if request.user.is_authenticated:
+        try:
+            subscription = UserSubscription.objects.get(user=request.user, is_active=True)
+            has_active_subscription = subscription.end_date > timezone.now()
+        except UserSubscription.DoesNotExist:
+            pass
+
+    return render(request, 'user/index.html', {
+        'videos': videos,
+        'photos': photos,
+        'slides': slides,
+        'has_active_subscription': has_active_subscription,  # ← très important
+    })
+
+
+
+@login_required
+def video_player(request, pk):
+    """Affiche une page avec un lecteur vidéo pour une vidéo spécifique."""
+    video = get_object_or_404(Video, id=pk)
+    
+    # Incrémenter le nombre de vues
+    video.views += 1
+    video.save()
+    
+    # Récupérer les vidéos similaires (même catégorie)
+    similar_videos = Video.objects.filter(category=video.category).exclude(id=video.id)[:4]
+    
+    # Récupérer les commentaires de la vidéo
+    comments = Comment.objects.filter(video=video).order_by('-created_at')
+    
+    # Vérifier si l'utilisateur a aimé cette vidéo
+    is_favorite = False
+    if request.user.is_authenticated:
+        is_favorite = Like.objects.filter(user=request.user, video=video).exists()
+    
+    # Vérifier si l'utilisateur a un abonnement actif
+    has_active_subscription = False
+    if request.user.is_authenticated:
+        try:
+            subscription = UserSubscription.objects.get(user=request.user, is_active=True)
+            has_active_subscription = subscription.end_date > timezone.now()
+        except UserSubscription.DoesNotExist:
+            has_active_subscription = False
+    
+    return render(request, 'user/video_player.html', {
+        'video': video,
+        'similar_videos': similar_videos,
+        'comments': comments,
+        'is_favorite': is_favorite,
+        'has_active_subscription': has_active_subscription,
+        'recommendations': similar_videos  # Pour le template existant
+    })
+
+@require_POST
+@login_required
+def toggle_like(request, video_id):
+    """Vue AJAX pour ajouter/retirer un like sur une vidéo."""
+    video = get_object_or_404(Video, id=video_id)
+    like, created = Like.objects.get_or_create(user=request.user, video=video)
+    
+    if not created:
+        # Si le like existait déjà, le supprimer
+        like.delete()
+        is_liked = False
+    else:
+        is_liked = True
+    
+    # Compter le nombre total de likes
+    likes_count = Like.objects.filter(video=video).count()
+    
+    return JsonResponse({
+        'success': True,
+        'is_liked': is_liked,
+        'likes_count': likes_count
+    })
+
+@require_POST
+@login_required
+def add_comment(request, video_id):
+    """Vue AJAX pour ajouter un commentaire à une vidéo."""
+    video = get_object_or_404(Video, id=video_id)
+    text = request.POST.get('text', '').strip()
+    
+    if not text:
+        return JsonResponse({'success': False, 'error': 'Le commentaire ne peut pas être vide.'})
+    
+    comment = Comment.objects.create(
+        user=request.user,
+        video=video,
+        text=text
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'comment': {
+            'id': comment.id,
+            'text': comment.text,
+            'username': comment.user.username,
+            'created_at': comment.created_at.strftime('%d %b %Y à %H:%M')
+        }
+    })
+
+
+
+def video_user(request):
+    videos = Video.objects.all()
+    categories = Category.objects.all()
+
+    return render(request, 'user/video_alll.html', {'videos': videos, 'categories': categories})
+
+def photo_user(request):
+    photos = Photo.objects.all()
+    categories = Category.objects.all()
+    
+    return render(request, 'user/photo.html', {'photos': photos, 'categories': categories})
+
+
+
+
+@login_required
+def change_username(request):
+    if request.method == "POST":
+        new_username = request.POST.get("username", "").strip()
+        if new_username and new_username != request.user.username:
+            if not User.objects.filter(username=new_username).exists():
+                request.user.username = new_username
+                request.user.save()
+                messages.success(request, "Votre nom d’utilisateur a été mis à jour.")
+            else:
+                messages.error(request, "Ce nom d’utilisateur est déjà pris.")
+        return redirect("index")  # ou la page d’où tu viens
+    return render(request, "partials/change_username_modal.html", {"user": request.user})

@@ -1,19 +1,23 @@
-<div class="relative group cursor-pointer" onclick="window.location.href='{% url 'video_player' pk=video.id %}'">
+<!-- core/partials/_videos.html -->
+<div class="relative group cursor-pointer" onclick="window.location.href='{% url 'video_player' video.id %}'">
     <div class="w-full relative h-[200px] bg-cover bg-center rounded-lg overflow-hidden"
-         {% if video.cover_film %}style="background-image: url('{{ video.cover_film.url }}');"{% endif %}>
-      {% if not video.cover_film %}
+         {% if video.cover_image %}style="background-image: url('{{ video.cover_image }}');"{% endif %}>
+      {% if not video.cover_image %}
         <div class="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full flex items-center justify-center">
           <span class="text-gray-500">Pas d'image</span>
         </div>
       {% endif %}
       <div class="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-full text-white text-sm">
-        {% for media_type in video.types.all %}
-          {{ media_type.name }}{% if not forloop.last %}, {% endif %}
-        {% empty %}
-          Inconnu
-        {% endfor %}
+        {% if video.category %}
+          {{ video.category.name }}
+        {% else %}
+          Non classé
+        {% endif %}
+      </div>
+      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+        <i class='bx bx-play-circle text-white text-5xl opacity-0 group-hover:opacity-100 transition-opacity duration-300'></i>
       </div>
     </div>
     <h3 class="font-normal text-white text-xl mt-2">{{ video.title }}</h3>
-    <p class="text-white/60 text-sm">{{ video.views }} vues • {{ video.get_time_ago }}</p>
+    <p class="text-white/60 text-sm">{{ video.views }} vues • {{ video.created_at|date:"d/m/Y" }}</p>
 </div>

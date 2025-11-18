@@ -1,0 +1,1719 @@
+adapte le {% extends "baseApp.html" %}
+{% block title %}Résultats de recherche{% endblock %}
+{% block content %}
+<div class="mt-16 px-4">
+  <h2 class="text-white text-4xl mb-8">Recherche : "{{ query }}"</h2>
+
+  <!-- Section : Films et Séries -->
+  {% if videos %}
+    <h3 class="text-white text-2xl mt-8 mb-4">Films & Séries</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for video in videos %}
+        {% include "partials/_videos.html" %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Section : Short Videos -->
+  {% if short_videos %}
+    <h3 class="text-white text-2xl mt-12 mb-4">Short Videos</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {% for video in short_videos %}
+            {% include "partials/_short_video.html" %}
+      {% endfor %}
+
+    </div>
+  {% endif %}
+
+  <!-- Section : Photos -->
+  {% if photos %}
+  <div class="mt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+  <h2 class="text-white text-3xl sm:text-4xl md:text-5xl font-normal mb-8">Photos</h2>
+
+  <!-- Grille Masonry -->
+  <div class="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-6">
+    {% for photo in photos %}
+      <div class="break-inside-avoid group cursor-pointer" onclick="openSwipeModal({{ photo.id }}, '{{ photo.image_file_url|default:'' }}', '{{ photo.title|escape }}', '{{ photo.description|escape|default:'' }}', '{{ photo.user.username }}', '{{ photo.created_at|date:"d/m/Y" }}')">
+        <div class="relative overflow-hidden rounded-xl shadow-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl">
+          <img
+            src="{{ photo.image_file_url|default:'' }}"
+            alt="{{ photo.title|default:'Photo' }}"
+            class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+            <p class="text-white px-4 pb-4 text-sm sm:text-base font-medium truncate">{{ photo.title|truncatechars:30 }}</p>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-gray-400 col-span-full text-center py-8">Aucune photo disponible.</p>
+    {% endfor %}
+  </div>
+  </div>
+
+  <!-- Modale de Swipe (Tinder Style) -->
+  <div id="swipe-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md aspect-[3/4] bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+      <!-- Photo -->
+      <img id="swipe-img" class="w-full h-full object-cover" src="" alt="Photo">
+
+      <!-- Informations -->
+      <div class="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-transparent to-transparent text-white">
+        <h3 id="swipe-title" class="text-xl font-bold"></h3>
+        <p id="swipe-desc" class="text-sm text-gray-200 mt-1 line-clamp-2"></p>
+        <div class="flex justify-between items-center mt-3 text-xs text-gray-300">
+          <span>Par <strong id="swipe-author"></strong></span>
+          <span id="swipe-date"></span>
+        </div>
+      </div>
+
+      <!-- Boutons de navigation -->
+      <button onclick="prevPhoto()" class="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white">
+        <i class='bx bx-chevron-left text-xl'></i>
+      </button>
+      <button onclick="nextPhoto()" class="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white">
+        <i class='bx bx-chevron-right text-xl'></i>
+      </button>
+
+      <!-- Bouton Fermer -->
+      <button onclick="closeSwipeModal()" class="absolute top-4 right-4 w-10 h-10 bg-black/60 rounded-full flex items-center justify-center text-white">
+        <i class='bx bx-x text-xl'></i>
+      </button>
+
+      <!-- Bouton Télécharger (visible si abonné) -->
+      {% if has_active_subscription %}
+        <a id="download-btn" href="#" download class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#a21892] hover:bg-[#8a147d] text-white px-6 py-2.5 rounded-full text-sm font-medium transition-colors z-10">
+          Télécharger
+        </a>
+      {% else %}
+        <button onclick="alert('Abonnez-vous pour télécharger !')" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white px-6 py-2.5 rounded-full text-sm font-medium cursor-not-allowed">
+          Télécharger
+        </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Aucun résultat -->
+  {% if not videos and not short_videos and not photos and query %}
+    <p class="text-white mt-8">Aucun résultat trouvé pour "{{ query }}"</p>
+  {% endif %}
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- Boxicons -->
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+<!-- Hammer.js pour le swipe -->
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+
+<script>
+  // Données des photos (injectées dynamiquement)
+  const photoList = [
+    {% for photo in photos %}
+      {
+        id: {{ photo.id }},
+        url: "{{ photo.image_file_url|default:'' }}",
+        title: "{{ photo.title|escape }}",
+        description: "{{ photo.description|escape|default:'' }}",
+        author: "{{ photo.user.username }}",
+        date: "{{ photo.created_at|date:'d/m/Y' }}",
+        downloadUrl: "{% if has_active_subscription %}{{ photo.image_file_url|default:'' }}{% else %}#{% endif %}"
+      },
+    {% endfor %}
+  ];
+
+  let currentIndex = 0;
+
+  // Ouvrir la modale avec une photo
+  function openSwipeModal(id, url, title, desc, author, date) {
+    const photo = photoList.find(p => p.id === id);
+    if (!photo) return;
+
+    currentIndex = photoList.indexOf(photo);
+    updateSwipeModal();
+    document.getElementById('swipe-modal').classList.remove('hidden');
+    setupSwipeGesture();
+  }
+
+  // Mettre à jour l'affichage
+  function updateSwipeModal() {
+    const photo = photoList[currentIndex];
+    if (!photo) return;
+
+    const img = document.getElementById('swipe-img');
+    const title = document.getElementById('swipe-title');
+    const desc = document.getElementById('swipe-desc');
+    const author = document.getElementById('swipe-author');
+    const date = document.getElementById('swipe-date');
+    const downloadBtn = document.getElementById('download-btn');
+
+    img.src = photo.url;
+    title.textContent = photo.title || 'Sans titre';
+    desc.textContent = photo.description || '';
+    author.textContent = photo.author;
+    date.textContent = photo.date;
+
+    if (downloadBtn && photo.downloadUrl) {
+      downloadBtn.href = photo.downloadUrl;
+    }
+  }
+
+  // Navigation
+  function nextPhoto() {
+    if (currentIndex < photoList.length - 1) {
+      currentIndex++;
+      updateSwipeModal();
+    }
+  }
+
+  function prevPhoto() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      updateSwipeModal();
+    }
+  }
+
+  function closeSwipeModal() {
+    document.getElementById('swipe-modal').classList.add('hidden');
+  }
+
+  // Gestion du swipe
+  function setupSwipeGesture() {
+    const modal = document.querySelector('#swipe-modal .relative');
+    const hammer = new Hammer(modal);
+
+    hammer.on('swipeleft', () => nextPhoto());
+    hammer.on('swiperight', () => prevPhoto());
+  }
+
+  // Fermer avec Échap
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSwipeModal();
+  });
+</script>
+{% endblock %}
+
+# models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Video(models.Model):
+    # 🔴 AJOUT: user - seul le propriétaire peut modifier/supprimer
+    # ✅ TEMPORAIRE: null=True, blank=True pour la migration
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='videos', null=True, blank=True)
+    
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    # ✅ CHANGEMENT: CharField pour les URLs R2
+    video_file = models.CharField(max_length=500, blank=True, null=True)  # URL R2 complète
+    cover_image = models.CharField(max_length=500, blank=True, null=True)  # URL R2 complète
+
+    # Metadata
+    duration = models.PositiveIntegerField(default=0)  # en secondes
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    views = models.PositiveIntegerField(default=0)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+    
+    @property
+    def video_url(self):
+        """Retourne l'URL complète de la vidéo"""
+        return self.video_file if self.video_file else ""
+    
+    @property
+    def cover_url(self):
+        """Retourne l'URL complète de l'image de couverture"""
+        return self.cover_image if self.cover_image else ""
+
+
+class Photo(models.Model):
+    # 🔴 AJOUT: user - seul le propriétaire peut modifier/supprimer
+    # ✅ TEMPORAIRE: null=True, blank=True pour la migration
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='photos', null=True, blank=True)
+    
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    # ✅ CHANGEMENT: CharField pour l'URL R2
+    photo_file = models.CharField(max_length=500, blank=True, null=True)  # URL R2 complète
+    
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+    
+    @property
+    def image_url(self):
+        """Retourne l'URL complète de l'image"""
+        return self.photo_file if self.photo_file else ""
+
+
+class SliderItem(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+    position = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position"]
+
+    def __str__(self):
+        return f"Slider: {self.video.title}"
+
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, null=True, blank=True)
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [
+            ("user", "video"),
+            ("user", "photo")
+        ]
+
+    def __str__(self):
+        if self.video:
+            return f"{self.user} likes video: {self.video}"
+        return f"{self.user} likes photo: {self.photo}"
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, null=True, blank=True)
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, null=True, blank=True)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Comment by {self.user}"
+
+
+class SubscriptionPlan(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.PositiveIntegerField()  # FCFA
+    duration_days = models.PositiveIntegerField(default=30)
+
+    def __str__(self):
+        return self.name
+
+
+class UserSubscription(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.plan}"
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
+    amount = models.PositiveIntegerField()
+    reference = models.CharField(max_length=255, unique=True)
+    status = models.CharField(max_length=20, default="pending")  # pending | success | failed
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.reference} - {self.status}"
+
+
+class Complaint(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    resolved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.subject
+
+import json
+import logging
+import uuid
+import re
+import os
+import boto3
+from django.utils import timezone
+from botocore.config import Config
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.core.files.uploadedfile import UploadedFile
+from django.contrib import messages
+from .forms import VideoForm, PhotoForm, PhotoEditForm, VideoEditForm
+from .models import (
+    Video, 
+    Photo, 
+    Category, 
+    Comment, 
+    Like, 
+    UserSubscription, 
+    SliderItem
+)
+from django.views.decorators.http import require_POST
+
+logger = logging.getLogger(__name__)
+
+# =====================================================================
+# VUES PUBLIQUES
+# =====================================================================
+
+def home(request):
+    videos = Video.objects.all()[:6]
+    photos = Photo.objects.all()[:6]
+    return render(request, 'core/index.html', {'videos': videos, 'photos': photos})
+
+def video_detail(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
+    video.views += 1
+    video.save()
+    return render(request, 'core/video_detail.html', {'video': video})
+
+def photo_detail(request, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+    return render(request, 'core/photo_detail.html', {'photo': photo})
+
+# =====================================================================
+# VUES UPLOAD PAGE
+# =====================================================================
+
+@login_required
+def upload_video_uppy(request):
+    categories = Category.objects.all()
+    return render(request, 'core/upload_video_uppy.html', {'categories': categories})
+
+@login_required
+def upload_photo_uppy(request):
+    categories = Category.objects.all()
+    return render(request, 'core/upload_photo_uppy.html', {'categories': categories})
+
+# =====================================================================
+# API VIEWS - SERVER-SIDE UPLOAD TO R2
+# =====================================================================
+
+@csrf_exempt
+def upload_file(request):
+    """Upload file to R2 via server-side (bypasses CORS issues with direct R2 uploads)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+
+    try:
+        uploaded_file = request.FILES.get('file')
+        upload_type = request.POST.get('uploadType', 'files')
+        
+        if not uploaded_file:
+            return JsonResponse({'error': 'No file provided'}, status=400)
+
+        # Create a unique filename
+        original_name = uploaded_file.name
+        safe_name = re.sub(r'[^a-zA-Z0-9._-]', '_', original_name)
+        unique_name = f"{uuid.uuid4().hex[:12]}_{safe_name}"
+        key = f"{upload_type}/{unique_name}"
+
+        # Upload to R2
+        s3 = boto3.client(
+            's3',
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name='auto'
+        )
+
+        s3.put_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=key,
+            Body=uploaded_file.read(),
+            ContentType=uploaded_file.content_type or 'application/octet-stream'
+        )
+
+        # Construct the public URL using CDN or fallback
+        cdn = getattr(settings, 'R2_CDN_DOMAIN', '') or os.getenv('R2_CDN_DOMAIN', '').strip()
+        if cdn and cdn.startswith("http"):
+            public_root = cdn.rstrip('/')
+        elif cdn:
+            public_root = f"https://{cdn.rstrip('/')}"
+        else:
+            public_root = f"{settings.AWS_S3_ENDPOINT_URL.rstrip('/')}/{settings.AWS_STORAGE_BUCKET_NAME}"
+        
+        file_url = f"{public_root}/{key}"
+        
+        return JsonResponse({
+            'success': True,
+            'fileURL': file_url,
+            'key': key
+        })
+
+    except Exception as e:
+        logger.error("Error uploading file: %s", e, exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+# =====================================================================
+# API VIEWS - PRESIGNED UPLOAD (DIRECT R2) - FALLBACK OPTION
+# =====================================================================
+
+@method_decorator(csrf_exempt, name='dispatch')
+class S3PresignView(View):
+    """Génère un presigned POST compatible R2 et retourne une public_url pour construire le lien final côté client."""
+    def post(self, request):
+        try:
+            # Parse JSON body (Uppy sends JSON, not form-data)
+            data = json.loads(request.body)
+            filename = data.get('filename', '').strip()
+            content_type = data.get('contentType', '').strip()
+            upload_type = data.get('uploadType', 'photos').strip()
+
+            if not filename:
+                return JsonResponse({'error': 'Filename manquant'}, status=400)
+
+            # safe + unique filename
+            safe = re.sub(r'[^a-zA-Z0-9._-]', '_', filename)
+            unique = f"{uuid.uuid4().hex[:12]}_{safe}"
+            key = f"{upload_type}/{unique}"
+
+            s3 = boto3.client(
+                's3',
+                endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name='auto',
+                config=Config(signature_version='s3v4', s3={'addressing_style': 'path'})
+            )
+
+            # Generate presigned POST for R2 with explicit R2-compatible parameters
+            presigned = s3.generate_presigned_post(
+                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                Key=key,
+                Fields={
+                    "Content-Type": content_type or "application/octet-stream",
+                    "key": key  # Include the key in the form fields as required by S3-compatible services
+                },
+                Conditions=[
+                    {"Content-Type": content_type or "application/octet-stream"},
+                    ["content-length-range", 1, 2 * 1024**3],  # 1 byte to 2GB
+                    ["starts-with", "$key", key]  # The key should match exactly
+                ],
+                ExpiresIn=3600  # 1 hour
+            )
+
+            # Construct the public URL using CDN if available (this is for accessing files after upload)
+            cdn = getattr(settings, 'R2_CDN_DOMAIN', '') or os.getenv('R2_CDN_DOMAIN', '').strip()
+            if cdn and cdn.startswith("http"):
+                public_root = cdn.rstrip('/')
+            elif cdn:
+                public_root = f"https://{cdn.rstrip('/')}"
+            else:
+                # Fallback - should use the CDN domain if available, otherwise use the endpoint with bucket
+                public_root = f"{settings.AWS_S3_ENDPOINT_URL.rstrip('/')}/{settings.AWS_STORAGE_BUCKET_NAME}"
+
+            return JsonResponse({
+                'url': presigned['url'],  # Upload URL (R2 endpoint with bucket in path)
+                'fields': presigned['fields'],  # Form fields to include in POST
+                'method': 'POST',
+                'key': key,  # Key for this specific upload
+                'public_root': public_root,  # Base URL for public access after upload
+                'bucket_name': settings.AWS_STORAGE_BUCKET_NAME
+            })
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON in request body")
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            logger.error("Erreur presign: %s", e, exc_info=True)
+            return JsonResponse({'error': str(e)}, status=500)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FinalizeUploadView(View):
+    """Sauvegarde métadonnées (fileURL attendu public)"""
+    def post(self, request):
+        try:
+            data = json.loads(request.body or "{}")
+            file_url = data.get('fileURL')
+            cover_image = data.get('cover_image')
+            upload_type = data.get('uploadType', 'photo')
+            title = data.get('title', '').strip()
+            description = data.get('description', '').strip()
+            category_id = data.get('category')
+            duration = data.get('duration', 0)
+
+            if not request.user.is_authenticated:
+                return JsonResponse({'error': 'Non authentifié'}, status=401)
+            if not file_url or not title:
+                return JsonResponse({'error': 'URL ou titre manquant'}, status=400)
+
+            if upload_type == 'video':
+                video = Video.objects.create(
+                    user=request.user,
+                    title=title,
+                    description=description,
+                    video_file=file_url,
+                    cover_image=cover_image,
+                    duration=int(duration) if duration else 0,
+                    category_id=category_id if category_id else None,
+                )
+                return JsonResponse({'success': True, 'id': video.id, 'url': f'/administration/video/{video.id}/', 'message': 'Vidéo publiée'})
+            elif upload_type == 'photo':
+                photo = Photo.objects.create(
+                    user=request.user,
+                    title=title,
+                    description=description,
+                    photo_file=file_url,
+                    category_id=category_id if category_id else None,
+                )
+                return JsonResponse({'success': True, 'id': photo.id, 'url': f'/administration/photo/{photo.id}/', 'message': 'Photo publiée'})
+
+            return JsonResponse({'error': 'Type invalide'}, status=400)
+        except Exception as e:
+            logger.error("Erreur finalisation: %s", e, exc_info=True)
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+# =====================================================================
+# VUES MODIFICATION ET SUPPRESSION
+# =====================================================================
+@login_required
+def edit_video(request, video_id):
+    """Affiche le formulaire de modification pour une vidéo existante."""
+    video = get_object_or_404(Video, id=video_id)
+    
+    # Vérifier que l'utilisateur est le propriétaire
+    if request.user != video.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas l'autorisation de modifier cette vidéo.")
+        return redirect('video_detail', video_id=video_id)
+    
+    categories = Category.objects.all()
+    
+    if request.method == 'POST':
+        # Utiliser le nouveau formulaire qui n'a pas de champ fichier
+        form = VideoEditForm(request.POST, instance=video)
+        
+        if form.is_valid():
+            # Sauvegarder les métadonnées
+            form.save()
+            
+            # Gérer les URLs mises à jour provenant du JavaScript
+            cover_image_url = request.POST.get('cover_image_url')
+            video_file_url = request.POST.get('video_file_url')
+            
+            # Mettre à jour les champs avec les nouvelles URLs si elles sont fournies
+            if cover_image_url:
+                video.cover_image = cover_image_url
+                print(f"Nouvelle URL de couverture: {cover_image_url}")  # Debug
+            if video_file_url:
+                video.video_file = video_file_url
+                print(f"Nouvelle URL de vidéo: {video_file_url}")  # Debug
+                
+            # Sauvegarder les modifications
+            video.save()
+            
+            messages.success(request, "Vidéo mise à jour avec succès !")
+            return redirect('video_detail', video_id=video_id)
+    else:
+        # Si GET, pré-remplir le formulaire
+        form = VideoEditForm(instance=video)
+    
+    return render(request, 'core/edit_video.html', {
+        'form': form, 
+        'video': video, 
+        'categories': categories,
+        'api_replace_url': request.build_absolute_uri(reverse('replace_media')) # URL pour notre API de remplacement
+    })
+
+@login_required
+def delete_video(request, video_id):
+    '''Vue pour supprimer un vidéo'''
+    video = get_object_or_404(Video, id=video_id)
+    
+    # Vérifier que l'utilisateur est le propriétaire
+    if request.user != video.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas l'autorisation de supprimer cette vidéo.")
+        return render(request, 'core/video_detail.html', {'video': video})
+    
+    if request.method == 'POST':
+        video_title = video.title
+        video.delete()
+        messages.success(request, f"Vidéo '{video_title}' supprimée avec succès!")
+        return redirect(reverse('home'))  # Rediriger vers la page d'accueil après suppression
+    
+    return render(request, 'core/delete_video.html', {'video': video})
+
+ 
+
+@login_required
+def edit_photo(request, photo_id):
+    """Affiche le formulaire de modification pour une photo existante."""
+    photo = get_object_or_404(Photo, id=photo_id)
+    
+    # Vérifier que l'utilisateur est le propriétaire
+    if request.user != photo.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas l'autorisation de modifier cette photo.")
+        return redirect(reverse('photo_detail', kwargs={'photo_id': photo_id}))
+    
+    categories = Category.objects.all()
+    
+    if request.method == 'POST':
+        # Utilisez le NOUVEAU formulaire qui n'a pas de champ fichier
+        form = PhotoEditForm(request.POST, instance=photo)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Photo mise à jour avec succès !")
+            return redirect(reverse('photo_detail', kwargs={'photo_id': photo_id}))
+    else:
+        # Si GET, pré-remplit le formulaire avec les données existantes
+        form = PhotoEditForm(instance=photo)
+    
+    return render(request, 'core/edit_photo.html', {
+        'form': form, 
+        'photo': photo, 
+        'categories': categories,
+        'api_replace_url': request.build_absolute_uri(reverse('replace_media'))
+    })
+
+
+@login_required
+def delete_photo(request, photo_id):
+    '''Vue pour supprimer une photo'''
+    photo = get_object_or_404(Photo, id=photo_id)
+    
+    # Vérifier que l'utilisateur est le propriétaire
+    if request.user != photo.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas l'autorisation de supprimer cette photo.")
+        return render(request, 'core/photo_detail.html', {'photo': photo})
+    
+    if request.method == 'POST':
+        photo_title = photo.title
+        photo.delete()
+        messages.success(request, f"Photo '{photo_title}' supprimée avec succès!")
+        return redirect(reverse('home'))  # Rediriger vers la page d'accueil après suppression
+    
+    return render(request, 'core/delete_photo.html', {'photo': photo})
+
+
+# =====================================================================
+# VUES POUR GÉRER LE CONTENU UTILISATEUR
+# =====================================================================
+
+@login_required
+def user_content(request):
+    '''Vue pour afficher le contenu de l'utilisateur'''
+    videos = Video.objects.filter(user=request.user).order_by('-created_at')
+    photos = Photo.objects.filter(user=request.user).order_by('-created_at')
+    
+    return render(request, 'core/user_content.html', {
+        'videos': videos,
+        'photos': photos
+    })
+
+
+# =====================================================================
+# API VIEWS - MODIFICATION VIA API (SIMILAIRE À LA CRÉATION)
+# =====================================================================
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateVideoAPIView(View):
+    '''API pour modifier une vidéo via l'API (comme la création mais sans upload direct)'''
+    def post(self, request, video_id):
+        try:
+            video = get_object_or_404(Video, id=video_id)
+            
+            # Vérifier les permissions
+            if request.user != video.user and not request.user.is_staff:
+                return JsonResponse({'error': 'Accès refusé'}, status=403)
+            
+            data = json.loads(request.body or "{}")
+            
+            # Mettre à jour les métadonnées
+            video.title = data.get('title', video.title)
+            video.description = data.get('description', video.description)
+            video.duration = int(data.get('duration', video.duration)) if data.get('duration') else video.duration
+            
+            # Mettre à jour la catégorie
+            category_id = data.get('category')
+            if category_id and str(category_id).isdigit():
+                video.category = get_object_or_404(Category, id=int(category_id))
+            else:
+                video.category = None
+            
+            # Mettre à jour les URLs si fournies
+            if 'new_video_url' in data and data['new_video_url']:
+                video.video_file = data['new_video_url']
+            if 'new_cover_url' in data and data['new_cover_url']:
+                video.cover_image = data['new_cover_url']
+                
+            video.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Vidéo mise à jour avec succès',
+                'video_url': f'/video/{video.id}/'
+            })
+        except Exception as e:
+            logger.error("Erreur modification vidéo API: %s", e, exc_info=True)
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdatePhotoAPIView(View):
+    '''API pour modifier une photo via l'API (comme la création mais sans upload direct)'''
+    def post(self, request, photo_id):
+        try:
+            photo = get_object_or_404(Photo, id=photo_id)
+            
+            # Vérifier les permissions
+            if request.user != photo.user and not request.user.is_staff:
+                return JsonResponse({'error': 'Accès refusé'}, status=403)
+            
+            data = json.loads(request.body or "{}")
+            
+            # Mettre à jour les métadonnées
+            photo.title = data.get('title', photo.title)
+            photo.description = data.get('description', photo.description)
+            
+            # Mettre à jour la catégorie
+            category_id = data.get('category')
+            if category_id and str(category_id).isdigit():
+                photo.category = get_object_or_404(Category, id=int(category_id))
+            else:
+                photo.category = None
+                
+            # Mettre à jour l'URL de la photo si fournie
+            if 'new_photo_url' in data and data['new_photo_url']:
+                photo.photo_file = data['new_photo_url']
+                
+            photo.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Photo mise à jour avec succès',
+                'photo_url': f'/photo/{photo.id}/'
+            })
+        except Exception as e:
+            logger.error("Erreur modification photo API: %s", e, exc_info=True)
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+# Fonctions utilitaires pour les vues classiques
+update_video_api = UpdateVideoAPIView.as_view()
+update_photo_api = UpdatePhotoAPIView.as_view()
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReplaceMediaView(View):
+    """
+    Vue API générique pour uploader un fichier média (cover, photo, vidéo, etc.)
+    et remplacer l'ancien fichier d'un objet (vidéo ou photo).
+    """
+    def post(self, request):
+        try:
+            # --- 1. Récupération et validation des données de base ---
+            
+            # Les données sont envoyées en FormData depuis le JavaScript
+            object_id = request.POST.get('object_id')
+            object_type = request.POST.get('object_type')  # 'video' ou 'photo'
+            media_type = request.POST.get('media_type')      # 'cover', 'video_file', 'photo', etc.
+
+            if not object_id or not object_type:
+                return JsonResponse({'error': 'ID ou type d\'objet manquant.'}, status=400)
+
+            if not request.user.is_authenticated:
+                return JsonResponse({'error': 'Non authentifié.'}, status=401)
+
+            # --- 2. Récupération de l'objet et vérification des permissions ---
+            
+            ModelClass = Video if object_type == 'video' else Photo
+            obj = get_object_or_404(ModelClass, id=object_id)
+
+            # Seul le propriétaire ou un administrateur peut modifier
+            if request.user != obj.user and not request.user.is_staff:
+                return JsonResponse({'error': 'Accès refusé.'}, status=403)
+
+            # --- 3. Gestion de l'upload d'un nouveau fichier ---
+            
+            uploaded_file = request.FILES.get('new_file')
+            if uploaded_file:
+                # Générer un nom de fichier unique et sécurisé
+                original_name = uploaded_file.name
+                safe_name = re.sub(r'[^a-zA-Z0-9._-]', '_', original_name)
+                # Utiliser media_type pour organiser les dossiers dans R2 (ex: covers/, videos/)
+                unique_filename = f"{media_type}s/{uuid.uuid4().hex[:12]}_{safe_name}"
+
+                # Initialisation du client S3 (compatible R2)
+                s3_client = boto3.client(
+                    's3',
+                    endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name='auto'
+                )
+
+                # Upload direct du fichier sur R2 avec ACL publique
+                s3_client.put_object(
+                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                    Key=unique_filename,
+                    Body=uploaded_file.read(),
+                    ContentType=uploaded_file.content_type or 'application/octet-stream',
+                    ACL='public-read'  # Rendre l'objet public
+                )
+
+                # Construction de l'URL publique pour accéder au fichier
+                # CORRECTION : Utiliser correctement le domaine CDN
+                cdn_domain = getattr(settings, 'R2_CDN_DOMAIN', '').strip()
+                if cdn_domain:
+                    # Utiliser le domaine CDN personnalisé s'il existe
+                    public_root = f"https://{cdn_domain.rstrip('/')}"
+                else:
+                    # Sinon, utiliser l'endpoint R2 direct (moins performant)
+                    public_root = f"{settings.AWS_S3_ENDPOINT_URL.rstrip('/')}/{settings.AWS_STORAGE_BUCKET_NAME}"
+                
+                new_media_url = f"{public_root}/{unique_filename}"
+                
+                # Debug
+                print(f"CDN Domain: {cdn_domain}")
+                print(f"Public Root: {public_root}")
+                print(f"Generated URL: {new_media_url}")
+
+                # Mise à jour du champ correspondant dans l'objet
+                if object_type == 'video':
+                    if media_type == 'cover':
+                        obj.cover_image = new_media_url
+                    elif media_type == 'video_file':
+                        obj.video_file = new_media_url
+                elif object_type == 'photo':
+                    obj.photo_file = new_media_url
+                
+                obj.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Le média "{media_type}" a été mis à jour avec succès !',
+                    'new_media_url': new_media_url
+                })
+
+            # --- 4. Gestion de la mise à jour des métadonnées (si aucun fichier) ---
+            
+            else:
+                # Mise à jour des champs texte pour une vidéo
+                if object_type == 'video':
+                    title = request.POST.get('title')
+                    description = request.POST.get('description')
+                    duration_val = request.POST.get('duration')
+                    category_id = request.POST.get('category')
+                    
+                    if title is not None:
+                        obj.title = title
+                    if description is not None:
+                        obj.description = description
+                    if duration_val:
+                        try:
+                            obj.duration = int(duration_val)
+                        except ValueError:
+                            return JsonResponse({'error': 'La durée doit être un nombre entier.'}, status=400)
+                    if category_id:
+                        obj.category_id = category_id
+
+                # Mise à jour des champs texte pour une photo
+                elif object_type == 'photo':
+                    title = request.POST.get('title')
+                    description = request.POST.get('description')
+                    category_id = request.POST.get('category')
+                    
+                    if title is not None:
+                        obj.title = title
+                    if description is not None:
+                        obj.description = description
+                    if category_id:
+                        obj.category_id = category_id
+
+                obj.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Les métadonnées ont été mises à jour avec succès !'
+                })
+
+        except json.JSONDecodeError:
+            logger.error("JSON invalide dans le corps de la requête ReplaceMediaView.")
+            return JsonResponse({'error': 'Requête invalide (JSON mal formé).'}, status=400)
+        except Exception as e:
+            # Logguer l'erreur complète pour le débogage
+            logger.error(f"Erreur inattendue dans ReplaceMediaView: {e}", exc_info=True)
+            return JsonResponse({'error': 'Une erreur interne est survenue.'}, status=500)
+
+
+
+
+
+# =====================================================================
+# views app for user 
+# =====================================================================
+# views.py
+
+def index(request):
+    # Récupérer les vidéos et photos récentes
+    videos = Video.objects.all()[:6]
+    photos = Photo.objects.all()[:12]  # Plus de photos pour la grille en colonnes
+    
+    # Récupérer les éléments du slider
+    slider_items = SliderItem.objects.select_related('video').all()
+    
+    # Créer les données du slider pour le template
+    slides = []
+    for item in slider_items:
+        if item.video and item.video.cover_image:
+            # Construire l'URL complète pour l'image de couverture
+            image_url = item.video.cover_image
+            if not image_url.startswith('http'):
+                image_url = request.build_absolute_uri(image_url)
+                
+            slides.append({
+                'image': image_url,
+                'text': item.video.title,
+                'video_id': item.video.id
+            })
+    
+    # S'il n'y a pas d'éléments dans le slider, utiliser les vidéos récentes
+    if not slides and videos:
+        for video in videos[:5]:  # Limiter à 5 vidéos pour le slider
+            if video.cover_image:
+                image_url = video.cover_image
+                if not image_url.startswith('http'):
+                    image_url = request.build_absolute_uri(image_url)
+                    
+                slides.append({
+                    'image': image_url,
+                    'text': video.title,
+                    'video_id': video.id
+                })
+    
+    return render(request, 'user/index.html', {
+        'videos': videos,
+        'photos': photos,
+        'slides': slides
+    })
+
+
+
+@login_required
+def video_player(request, pk):
+    """Affiche une page avec un lecteur vidéo pour une vidéo spécifique."""
+    video = get_object_or_404(Video, id=pk)
+    
+    # Incrémenter le nombre de vues
+    video.views += 1
+    video.save()
+    
+    # Récupérer les vidéos similaires (même catégorie)
+    similar_videos = Video.objects.filter(category=video.category).exclude(id=video.id)[:4]
+    
+    # Récupérer les commentaires de la vidéo
+    comments = Comment.objects.filter(video=video).order_by('-created_at')
+    
+    # Vérifier si l'utilisateur a aimé cette vidéo
+    is_favorite = False
+    if request.user.is_authenticated:
+        is_favorite = Like.objects.filter(user=request.user, video=video).exists()
+    
+    # Vérifier si l'utilisateur a un abonnement actif
+    has_active_subscription = False
+    if request.user.is_authenticated:
+        try:
+            subscription = UserSubscription.objects.get(user=request.user, is_active=True)
+            has_active_subscription = subscription.end_date > timezone.now()
+        except UserSubscription.DoesNotExist:
+            has_active_subscription = False
+    
+    return render(request, 'user/video_player.html', {
+        'video': video,
+        'similar_videos': similar_videos,
+        'comments': comments,
+        'is_favorite': is_favorite,
+        'has_active_subscription': has_active_subscription,
+        'recommendations': similar_videos  # Pour le template existant
+    })
+
+@require_POST
+@login_required
+def toggle_like(request, video_id):
+    """Vue AJAX pour ajouter/retirer un like sur une vidéo."""
+    video = get_object_or_404(Video, id=video_id)
+    like, created = Like.objects.get_or_create(user=request.user, video=video)
+    
+    if not created:
+        # Si le like existait déjà, le supprimer
+        like.delete()
+        is_liked = False
+    else:
+        is_liked = True
+    
+    # Compter le nombre total de likes
+    likes_count = Like.objects.filter(video=video).count()
+    
+    return JsonResponse({
+        'success': True,
+        'is_liked': is_liked,
+        'likes_count': likes_count
+    })
+
+@require_POST
+@login_required
+def add_comment(request, video_id):
+    """Vue AJAX pour ajouter un commentaire à une vidéo."""
+    video = get_object_or_404(Video, id=video_id)
+    text = request.POST.get('text', '').strip()
+    
+    if not text:
+        return JsonResponse({'success': False, 'error': 'Le commentaire ne peut pas être vide.'})
+    
+    comment = Comment.objects.create(
+        user=request.user,
+        video=video,
+        text=text
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'comment': {
+            'id': comment.id,
+            'text': comment.text,
+            'username': comment.user.username,
+            'created_at': comment.created_at.strftime('%d %b %Y à %H:%M')
+        }
+    })
+
+
+{% load static %} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Auth{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"  rel="stylesheet">
+    <!-- CSS pour la navigation mobile -->
+    <link href="/static/css/mobile-nav.css" rel="stylesheet">
+    <style type="text/tailwindcss">
+                    @layer utilities {
+                    .text-shadow {
+                        text-shadow: 0px 4px 16px #ffffff;
+                    }
+                    .gradient-border {
+                        position: relative;
+                    }
+                    .gradient-border::before {
+                        content: "";
+                        position: absolute;
+                        inset: 0;
+                        padding: 2px;
+                        border-radius: 23px;
+                        background: linear-gradient(180deg, rgba(255, 255, 255, 0.29) 0%, rgba(153, 153, 153, 0.29) 100%);
+                        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                        -webkit-mask-composite: xor;
+                        mask-composite: exclude;
+                        pointer-events: none;
+                    }
+                    }
+            
+            .group:hover .card-text {
+                opacity: 1;
+            }
+
+            .card-text {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+                padding: 1rem;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+                color: white;
+                z-index: 10;
+            }
+    </style>
+
+    <style>
+            
+        video::-webkit-media-controls {
+          display: none !important;
+        }
+
+        .progress-bar {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0%;
+          height: 3px;
+          background: #a21892;
+          animation: loading 5s linear forwards;
+        }
+
+        @keyframes loading {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+
+        .video-container {
+          position: relative;
+          width: 100%;
+          max-width: 400px;
+          height: 100vh;
+          overflow: hidden;
+          scroll-snap-align: start;
+        }
+
+        .video-wrapper {
+          scroll-snap-type: y mandatory;
+          overflow-y: scroll;
+          -webkit-overflow-scrolling: touch;
+          height: 100vh;
+          scrollbar-width: none;
+        }
+
+        .video-wrapper::-webkit-scrollbar {
+          display: none;
+        }
+
+        .overlay-text {
+          transition: opacity 0.3s ease-in-out;
+        }
+
+        .video-wrapper .video-container:hover .overlay-text {
+          opacity: 1;
+        }
+    </style>
+ 
+ 
+        <style>
+              #mobile-menu {
+              animation: fadeInDown 0.3s ease-in-out;
+            }
+
+            @keyframes fadeInDown {
+              from {
+                opacity: 0;
+                transform: translateY(-10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+          .pill {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.5rem; /* gap-2 */
+                        padding: 0.5rem; /* p-2 */
+                        border-radius: 0.5rem; /* rounded-lg */
+                        transition: all 0.3s ease; /* transition-all duration-300 */
+                        cursor: pointer;
+                    }
+
+                    .pill:hover {
+                        background-color: rgba(255, 255, 255, 0.1); /* hover:bg-white/10 */
+                    }
+
+                    .pill.active {
+                        background-color: rgba(255, 255, 255, 0.2); /* bg-white/20 */
+                        border-radius: 9999px; /* rounded-full */
+                    }
+         </style>
+
+
+        
+         <script>
+              document.addEventListener("DOMContentLoaded", function () {
+                  // Gestion des onglets pills
+                  const pills = document.querySelectorAll('.pill');
+                  const mobileMenu = document.getElementById("mobile-menu");
+                  const hamburger = document.querySelector(".bx-menu");
+
+                  // Activer/désactiver le menu mobile
+                  hamburger.addEventListener("click", () => {
+                  mobileMenu.classList.toggle("hidden");
+                  });
+
+                  // Fermer le menu mobile quand on clique sur un lien
+                  document.querySelectorAll('.pill-mobile').forEach(link => {
+                  link.addEventListener("click", () => {
+                      mobileMenu.classList.add("hidden");
+                  });
+                  });
+
+                  // Gestion de l'état actif via URL
+                  const currentPath = window.location.pathname;
+                  pills.forEach(pill => {
+                  const link = pill.getAttribute('href');
+                  if (link === currentPath) {
+                      pill.classList.add('active');
+                  } else {
+                      pill.classList.remove('active');
+                  }
+                  });
+
+                  // Gestion du scroll sur la nav
+                  window.addEventListener('scroll', () => {
+                  const nav = document.querySelector('nav');
+                  if (window.scrollY > 50) {
+                      nav.classList.add('scrolled');
+                  } else {
+                      nav.classList.remove('scrolled');
+                  }
+                  });
+              });
+        </script>
+
+    
+
+
+</head>
+<body class="bg-[#0f0203] relative">
+            {% include "partials/_popup.html" %}
+    
+    <!-- loader include -->
+        {% include "partials/_loader.html" %}
+
+
+      <!-- Fond ellipse (simulé) -->
+      <div class="absolute inset-0 bg-gradient-to-r from-pink-900 to-transparent opacity-30 z-[-1]"></div>
+ 
+ 
+
+
+    <div class="container mx-auto px-4 max-w-screen-xl">
+
+        {% include "partials/_nav.html" %}
+        <!-- Popup Modal -->
+        
+        {% block content %}
+            
+        {% endblock %}
+
+
+
+
+        {% include "partials/_profile.html" %}
+        
+
+  
+        {% block extra_js %}{% endblock extra_js %}
+        
+        <!-- JavaScript pour la navigation mobile -->
+        <script src="/static/js/mobile-nav.js"></script>
+
+</div>
+ 
+
+
+
+
+
+
+
+
+
+
+
+      <script>
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarButton = document.getElementById('open-sidebar');
+        
+        openSidebarButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // Close the sidebar when clicking outside of it
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !openSidebarButton.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+        }
+    </script>
+
+
+
+
+    {% include "partials/style.html" %}
+
+
+
+
+
+
+
+
+
+
+</body>
+
+
+
+
+
+
+
+
+
+
+ 
+</html>
+
+
+<style>
+  /* Animation fluide pour le popup recherche */
+  #search-popup {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  #search-popup:not(.pointer-events-none) {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Focus input agrandit légèrement */
+  input:focus ~ .bx-search {
+    left: 16px;
+    opacity: 0.7;
+  }
+  
+  /* Améliorations pour la navigation mobile */
+  .mobile-menu-open {
+    transform: translateX(0) !important;
+  }
+  
+  .search-popup-open {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Overlay pour le menu mobile */
+  .mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 996;
+    display: none;
+  }
+  
+  .mobile-menu-overlay.open {
+    display: block;
+  }
+</style>
+
+<!-- Overlay pour fermer le menu mobile -->
+<div id="mobile-menu-overlay" class="mobile-menu-overlay"></div>
+
+<nav class="flex flex-col md:flex-row justify-between items-center px-4 md:px-8 py-4 bg-transparent transition-all duration-300">
+  <!-- Logo Desktop -->
+  <a href=" " class="hidden md:flex items-center mb-4 md:mb-0">
+    <div class="font-['Italiana'] font-normal text-[28px] md:text-[40px] text-white">Porn</div>
+    <div class="font-['Irish_Grover'] font-normal text-[36px] md:text-[55px] text-[#a21892] ml-2">Flixe</div>
+  </a>
+
+  <!-- Mobile Header (Logo + Search + Hamburger) -->
+  <div class="md:hidden bg-[#0f0203] w-full fixed top-0 left-0 right-0 z-[999] px-4 py-4 flex items-center justify-between">
+    <a href=" " class="flex items-center">
+      <div class="font-['Italiana'] font-normal text-[28px] text-white">Porn</div>
+      <div class="font-['Irish_Grover'] font-normal text-[36px] text-[#a21892] ml-2">Flixe</div>
+    </a>
+
+    <div class="flex items-center gap-4">
+      <!-- Bouton Recherche Mobile -->
+      <button id="search-toggle" class="text-white focus:outline-none">
+        <i class='bx bx-search text-2xl'></i>
+      </button>
+
+      <!-- Bouton Menu Hamburger -->
+      <button id="menu-toggle" class="text-white focus:outline-none">
+        <i class='bx bx-menu text-2xl'></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔍 Popup de Recherche Mobile -->
+  <div id="search-popup" class="md:hidden fixed inset-0 z-[998] bg-[#0f0203] flex flex-col pt-20 px-6 pb-8 transform -translate-y-full opacity-0 pointer-events-none transition-all duration-300">
+    <form action=" " method="get" class="mb-6 relative mt-12">
+      <input
+        type="text"
+        name="q"
+        placeholder="Rechercher des vidéos, photos..."
+        class="w-full pl-12 pr-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full outline-none text-white placeholder-gray-300 text-sm focus:ring-2 focus:ring-[#a21892] focus:pl-14 transition-all"
+        autofocus
+      />
+      <i class='bx bx-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-300 text-xl'></i>
+      <button type="button" id="close-search" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+        <i class='bx bx-x text-2xl'></i>
+      </button>
+    </form>
+    <p class="text-gray-400 text-sm">Appuyez sur Entrée pour lancer la recherche</p>
+  </div>
+
+  <!-- ☰ Menu Mobile (comme avant) -->
+  <div id="mobile-menu" class="md:hidden fixed inset-0 z-[997] bg-[#0f0203] h-screen transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto">
+    <div class="flex flex-col h-full pt-20 px-6 pb-8">
+      <!-- Navigation Links -->
+      <nav class="flex flex-col gap-4 mb-8">
+
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/' %}bg-white/10{% endif %}">
+          <i class='bx bx-home text-2xl'></i>
+          <span>Home</span>
+        </a>
+        
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/films' %}bg-white/10{% endif %}">
+          <i class='bx bxs-film text-2xl'></i>
+          <span>Film</span>
+        </a>
+         
+        <a href=" " class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition {% if request.path == '/photos' %}bg-white/10{% endif %}">
+          <i class='bx bx-image-alt text-2xl'></i>
+          <span>Photo</span>
+        </a>
+        
+        <div onclick="openUsernamePopup()" class="flex items-center gap-4 p-3 text-white rounded-lg hover:bg-white/10 transition cursor-pointer">
+          <i class='bx bx-user text-2xl'></i>
+          <span>Profil</span>
+        </div>
+      </nav>
+
+      <!-- User Section -->
+      {% if user.is_authenticated %}
+        <div class="border-t border-white/20 pt-6 mt-auto">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 bg-[#a21892] rounded-full flex items-center justify-center">
+              <span class="text-white font-semibold text-lg">{{ user.username|upper|slice:"0:1" }}</span>
+            </div>
+            <div>
+              <h3 class="text-white font-medium">{{ user.username }}</h3>
+              {% if has_active_subscription %}
+                <p class="text-green-400 text-xs flex items-center mt-1">
+                  <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                  ABONNÉ • Expire le {{ user_subscription.end_date|date:"d/m/Y" }}
+                </p>
+              {% else %}
+                <a href=" " class="text-red-400 text-xs hover:underline">Non abonné • S'abonner</a>
+              {% endif %}
+            </div>
+          </div>
+          <a href="{% url 'account_logout' %}" class="flex items-center gap-2 text-gray-300 hover:text-white transition">
+            <i class='bx bx-log-out text-xl'></i>
+            <span>Déconnexion</span>
+          </a>
+        </div>
+      {% else %}
+        <div class="border-t border-white/20 pt-6 mt-auto">
+          <div class="flex flex-col gap-3">
+            <a href="{% url 'account_login' %}" class="flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition">
+              <i class='bx bx-log-in text-xl'></i>
+              <span>Connexion</span>
+            </a>
+            <a href="{% url 'account_signup' %}" class="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#a21892] to-[#e94057] text-white rounded-lg transition hover:from-[#c43a7d] hover:to-[#f06a7d]">
+              <i class='bx bx-user-plus text-xl'></i>
+              <span>S’inscrire</span>
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Desktop Navigation Pills -->
+  <div id="nav-pills" class="hidden md:flex items-center gap-2 mb-4 md:mb-0 text-white">
+    <a href=" " class="pill {% if request.path == '/' %}active{% endif %}">Home</a> 
+    <a href=" " class="pill {% if request.path == '/films' %}active{% endif %}">Film</a> 
+    <a href=" " class="pill {% if request.path == '/photos' %}active{% endif %}">Photo</a> 
+  </div>
+
+  <!-- Desktop Search + Profile -->
+  <form action="" method="get" class="hidden md:flex items-center gap-4 mt-4 md:mt-0">
+    <div class="relative flex items-center">
+      <input
+        type="text"
+        name="q"
+        placeholder="Search..."
+        class="w-40 pl-10 pr-4 py-2 bg-white rounded-full outline-none placeholder-gray-500 text-sm"
+      />
+      <i class='bx bx-search absolute left-3 text-gray-500'></i>
+    </div>
+    <div class="relative w-[133px] h-[39px] rounded-[33px] cursor-pointer group">
+      <div class="absolute inset-0 bg-[#a21892] rounded-[33px] blur-sm"></div>
+      <div id="open-sidebar" class="absolute inset-0 flex items-center justify-start bg-black/20 rounded-[33px] transition-all duration-300 group-hover:bg-black/40">
+        {% if user.is_authenticated %}
+          <div class="ml-1 w-[31px] h-[31px] bg-black rounded-full flex items-center justify-center text-white text-sm font-medium">
+            {{ user.username|upper|slice:"0:1" }}
+          </div>
+          <span class="ml-3 text-white text-sm whitespace-nowrap">{{ user.username|truncatechars:6 }}</span>
+        {% else %}
+          <div class="ml-1 w-[31px] h-[31px] bg-black rounded-full flex items-center justify-center">
+            <i class='bx bx-user text-white'></i>
+          </div>
+          <span class="ml-3 text-white text-sm whitespace-nowrap">Connexion</span>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+</nav>
+
+<script>
+  const menuToggle = document.getElementById('menu-toggle');
+  const searchToggle = document.getElementById('search-toggle');
+  const closeSearch = document.getElementById('close-search');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const searchPopup = document.getElementById('search-popup');
+  const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+  const closeButtons = document.querySelectorAll('#mobile-menu a, #mobile-menu button');
+
+  // Fonction pour fermer le menu mobile
+  function closeMobileMenu() {
+    mobileMenu.classList.remove('mobile-menu-open');
+    mobileMenuOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Fonction pour fermer le popup de recherche
+  function closeSearchPopup() {
+    searchPopup.classList.remove('search-popup-open');
+    document.body.style.overflow = '';
+  }
+
+  // Ouvrir le menu ☰
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    mobileMenu.classList.add('mobile-menu-open');
+    mobileMenuOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    
+    // Fermer recherche si ouverte
+    closeSearchPopup();
+  });
+
+  // Ouvrir la recherche 🔍
+  searchToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    searchPopup.classList.add('search-popup-open');
+    document.body.style.overflow = 'hidden';
+    
+    // Fermer menu si ouvert
+    closeMobileMenu();
+  });
+
+  // Fermer la recherche avec ✕
+  closeSearch.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeSearchPopup();
+  });
+
+  // Fermer le menu quand on clique sur l'overlay
+  mobileMenuOverlay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeMobileMenu();
+  });
+
+  // Fermer les menus quand on clique sur un lien
+  closeButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      closeMobileMenu();
+    });
+  });
+
+  // Fermer avec ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (searchPopup.classList.contains('search-popup-open')) {
+        closeSearchPopup();
+      }
+      if (mobileMenu.classList.contains('mobile-menu-open')) {
+        closeMobileMenu();
+      }
+    }
+  });
+
+  // Fermer le menu quand on clique à l'extérieur
+  document.addEventListener('click', (e) => {
+    if (!mobileMenu.contains(e.target) && !menuToggle.contains(e.target) && mobileMenu.classList.contains('mobile-menu-open')) {
+      closeMobileMenu();
+    }
+    
+    if (!searchPopup.contains(e.target) && !searchToggle.contains(e.target) && searchPopup.classList.contains('search-popup-open')) {
+      closeSearchPopup();
+    }
+  });
+
+  // Empêcher la propagation des clics à l'intérieur des menus
+  mobileMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  searchPopup.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+</script>
+
+
+corrig la nav aussi

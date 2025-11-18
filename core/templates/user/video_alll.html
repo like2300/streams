@@ -1,0 +1,101 @@
+{% extends "baseApp.html" %}
+{% load static %}
+{% block title %}Résultats de recherche{% endblock %}
+
+{% block content %}
+<div class="mt-16 px-4"> 
+
+  <!-- Section : Films et Séries -->
+  {% if videos %}
+    <h3 class="text-white text-2xl mt-8 mb-4">Films & Séries</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for video in videos %}
+        <!-- Tu dois créer ce partial ou l’adapter -->
+        <a href="{% url 'video_player' video.id %}" class="group">
+          <div class="relative rounded-xl overflow-hidden shadow-lg aspect-video bg-gray-800">
+            {% if video.cover_image %}
+              <img src="{{ video.cover_image }}" alt="{{ video.title }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            {% else %}
+              <div class="w-full h-full flex items-center justify-center bg-gray-700">
+                <i class="bx bx-film text-4xl text-gray-500"></i>
+              </div>
+            {% endif %}
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black p-3">
+              <h4 class="text-white font-medium line-clamp-2">{{ video.title }}</h4>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+ 
+
+  <!-- Aucun résultat -->
+  {% if not videos and not photos and query %}
+    <p class="text-white mt-8 text-xl">Aucun résultat trouvé pour "<strong>{{ query }}</strong>"</p>
+  {% endif %}
+</div>
+
+ 
+
+<!-- Boxicons + Hammer.js -->
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+
+<script>
+  const photoList = [
+    {% for photo in photos %}
+      {
+        id: {{ photo.id }},
+        url: "{{ photo.photo_file|default:''|escapejs }}",
+        title: "{{ photo.title|escapejs }}",
+        description: "{{ photo.description|escapejs|default:'' }}",
+        author: "{{ photo.user.username|escapejs }}",
+        date: "{{ photo.created_at|date:'d/m/Y'|escapejs }}",
+        downloadUrl: "{% if has_active_subscription %}{{ photo.photo_file|default:''|escapejs }}{% else %}#{% endif %}"
+      },
+    {% endfor %}
+  ];
+
+  let currentIndex = 0;
+
+  function openSwipeModal(id) {
+    const photo = photoList.find(p => p.id === id);
+    if (!photo) return;
+    currentIndex = photoList.indexOf(photo);
+    updateSwipeModal();
+    document.getElementById('swipe-modal').classList.remove('hidden');
+    setupSwipeGesture();
+  }
+
+  function updateSwipeModal() {
+    const photo = photoList[currentIndex];
+    if (!photo) return;
+    document.getElementById('swipe-img').src = photo.url;
+    document.getElementById('swipe-title').textContent = photo.title || 'Sans titre';
+    document.getElementById('swipe-desc').textContent = photo.description || '';
+    document.getElementById('swipe-author').textContent = photo.author;
+    document.getElementById('swipe-date').textContent = photo.date;
+    const btn = document.getElementById('download-btn');
+    if (btn && photo.downloadUrl) btn.href = photo.downloadUrl;
+  }
+
+  function nextPhoto() { if (currentIndex < photoList.length - 1) { currentIndex++; updateSwipeModal(); } }
+  function prevPhoto() { if (currentIndex > 0) { currentIndex--; updateSwipeModal(); } }
+  function closeSwipeModal() { document.getElementById('swipe-modal').classList.add('hidden'); }
+
+  function setupSwipeGesture() {
+    const el = document.querySelector('#swipe-modal .relative');
+    if (!el) return;
+    const mc = new Hammer(el);
+    mc.on('swipeleft', nextPhoto);
+    mc.on('swiperight', prevPhoto);
+  }
+
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSwipeModal(); });
+</script>
+
+
+{% endblock %}

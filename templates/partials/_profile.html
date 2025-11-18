@@ -158,33 +158,42 @@
     }
 </style>
  
-
-<!-- MODAL -->
-<div id="username-modal" onclick="closeUsernamePopup()" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center">
-    <!-- Contenu centré --> 
-        <!-- IFRAME -->
-        <iframe src="{% url 'home' %}" class="w-full h-full border-none"></iframe>
-
-        <!-- BOUTON DE FERMETURE -->
-        <button onclick="closeUsernamePopup()" 
-            class="absolute top-3 right-3 w-10 h-10 text-white hover:text-[#a21892] hover:bg-white bg-[#a21892] rounded-full transition-colors z-50">
-            <i class='bx bx-x text-2xl'></i>
-        </button>
  
-</div>
+         
+       <!-- Inclure la modale uniquement si user connecté -->
+        {% if user.is_authenticated %}
+             {% include "partials/change_username_modal.html" %}
+        {% endif %}
+
+       
+
 
 
 <script>
 function openUsernamePopup() {
-    const modal = document.getElementById('username-modal');
+  const modal = document.getElementById('username-modal');
+  if (modal) {
     modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    document.getElementById('sidebar').classList.add('-translate-x-full');
+    document.body.style.overflow = 'hidden'; // empêche le scroll
+  }
 }
 
 function closeUsernamePopup() {
-    const modal = document.getElementById('username-modal');
+  const modal = document.getElementById('username-modal');
+  if (modal) {
     modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
 }
+
+// Fermer avec Échap
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeUsernamePopup();
+});
+
+// Fermer en cliquant à l’extérieur
+document.getElementById('username-modal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'username-modal') closeUsernamePopup();
+});
 </script>
+ 

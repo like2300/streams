@@ -198,7 +198,6 @@ else:
     CORS_ALLOW_CREDENTIALS = True
 
 
-# --- Configuration de Sécurité (Production Uniquement) ---
 # Ces paramètres ne sont activés que lorsque DEBUG=False.
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
@@ -211,15 +210,21 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
 
+# === AUTHENTIFICATION PAR EMAIL UNIQUEMENT ===
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
 
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False            
 
-# gooogle oauth
-ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"     
+
 LOGIN_REDIRECT_URL = "/"
-ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
+LOGOUT_REDIRECT_URL = "/"
 
 # === SOCIAL LOGIN (GOOGLE) ===
 SOCIALACCOUNT_PROVIDERS = {
