@@ -23,6 +23,12 @@
             }
         }
     </script>
+    <script>
+        // Ajoute une classe au body si l'utilisateur est sur mobile
+        if (window.innerWidth < 768) {
+            document.body.classList.add('mobile-nav-active');
+        }
+    </script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -99,5 +105,6 @@
 
     <!-- Block pour du JS supplémentaire (Uppy) -->
     {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/mobile-nav.js' %}"></script>
 </body>
 </html>

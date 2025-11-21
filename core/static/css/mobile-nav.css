@@ -42,6 +42,12 @@
   visibility: visible;
 }
 
+/* Ajout de padding au body pour éviter que la nav ne cache le contenu */
+body.mobile-nav-active {
+  padding-bottom: 60px; /* Hauteur de la barre de navigation */
+}
+
+
 /* Améliorations pour les petits écrans */
 @media (max-width: 767px) {
   /* Ajustements pour la barre de navigation mobile */

@@ -202,7 +202,7 @@
  
 
 
-    <div class="container mx-auto px-4 max-w-screen-xl">
+    <div class="container mx-auto  max-w-screen-xl">
 
         {% include "partials/_nav.html" %}
         <!-- Popup Modal -->
@@ -234,28 +234,6 @@
 
 
 
-
-
-      <script>
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarButton = document.getElementById('open-sidebar');
-        
-        openSidebarButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sidebar.classList.toggle('-translate-x-full');
-        });
-
-        // Close the sidebar when clicking outside of it
-        document.addEventListener('click', (e) => {
-            if (!sidebar.contains(e.target) && !openSidebarButton.contains(e.target)) {
-                sidebar.classList.add('-translate-x-full');
-            }
-        });
-
-        function closeSidebar() {
-            sidebar.classList.add('-translate-x-full');
-        }
-    </script>
 
 
 
