@@ -72,9 +72,10 @@
                 <a href="{% url 'home' %}" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100">Accueil</a>
                 {% if user.is_authenticated %}
                 <img src="https://ui-avatars.com/api/?name={{request.user}}" alt="avatar">
-                    <a href=\"{% url 'upload_video_uppy' %}\" class=\"block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Uploader Vidéo</a>\n                    <a href=\"{% url 'upload_photo_uppy' %}\" class=\"block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Uploader Photo</a>\n                    <a href=\"{% url 'user_content' %}\" class=\"block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Mon Contenu</a>\n                    <a href=\"/admin/logout/\" class=\"block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Déconnexion</a>
-
-                    
+                    <a href="{% url 'upload_video_uppy' %}" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Uploader Vidéo</a>                   
+                    <a href="{% url 'upload_photo_uppy' %}" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Uploader Photo</a>                  
+                    <a href="{% url 'user_content' %}" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Mon Contenu</a>
+                   <a href="/admin/logout/" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100\">Déconnexion</a>
                 {% else %}
                     <a href="/admin/login/" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100">Connexion</a>
                 {% endif %}
