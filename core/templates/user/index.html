@@ -160,7 +160,7 @@
 </div>
 
 <!-- Sidebar des commentaires -->
-<div id="comments-sidebar" class="fixed top-0 right-0 h-full w-full max-w-md bg-[#050e16] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 overflow-hidden">
+<div id="comments-sidebar" class="fixed top-0 right-0 h-full w-full max-w-md bg-[#050e16] shadow-2xl z-[88888] transform translate-x-full transition-transform duration-300 overflow-hidden">
   <div class="p-6 flex flex-col h-full">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-bold text-white">Commentaires</h2>
@@ -169,28 +169,58 @@
       </button>
     </div>
 
-    <div id="comments-list" class="flex-1 overflow-y-auto space-y-4 pb-6"></div>
-
-    <form id="comment-form" class="border-t border-gray-800 pt-4">
-      <textarea
-        id="comment-textarea"
-        placeholder="Écrivez un commentaire..."
-        class="w-full bg-gray-900 text-white rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#1769c2] resize-none"
-        rows="3"
-        maxlength="200"
-        required></textarea>
-      <div class="mt-3 flex justify-end gap-3">
-        <button type="button" id="cancel-comment" class="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-600">Annuler</button>
-        <button type="submit" class="bg-[#1769c2] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#178cbe]">Publier</button>
+     <!-- Formulaire de commentaire en bas -->
+    <form id="comment-form" class="border-t border-gray-800 pb-4">
+      <div class="flex gap-2">
+        <input
+          type="text"
+          name="text"
+          placeholder="Ajouter un commentaire..."
+          class="flex-1 bg-gray-700/50 border border-gray-600 rounded-full px-4 py-2 text-white focus:outline-none focus:border-purple-500"
+          required>
+        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-2">
+          <i class="material-icons">send</i>
+        </button>
       </div>
     </form>
+
+
+    <!-- Zone de défilement pour les commentaires -->
+    <div id="comments-list" class="flex-1 overflow-y-auto space-y-4 pb-6">
+      <!-- Style personnalisé pour le scroll -->
+      <style>
+        #comments-list::-webkit-scrollbar {
+          width: 6px;
+        }
+        #comments-list::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 3px;
+        }
+        #comments-list::-webkit-scrollbar-thumb {
+          background: rgba(161, 24, 146, 0.5);
+          border-radius: 3px;
+        }
+        #comments-list::-webkit-scrollbar-thumb:hover {
+          background: rgba(161, 24, 146, 0.7);
+        }
+      </style>
+      
+      <!-- Les commentaires seront chargés dynamiquement -->
+    </div>
+
+     <div class="md:hidden">
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    
+                </div>
+
+   
   </div>
 </div>
 
 <div id="comments-overlay" class="fixed inset-0 bg-black/50 z-49 hidden"></div>
-
-
-
 
 <script>
   // === SLIDER LOGIC ===
@@ -407,14 +437,14 @@
             list.appendChild(el);
           });
         } else {
-          list.innerHTML = '<p class="text-gray-400 text-center">Aucun commentaire pour le moment.</p>';
+          list.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="material-icons text-4xl mb-2">forum</i><p>Aucun commentaire pour le moment.</p></div>';
         }
       });
   }
 
   function addComment(event) {
     event.preventDefault();
-    const textInput = document.getElementById('comment-textarea');
+    const textInput = document.getElementById('comment-form').querySelector('input[name="text"]');
     const text = textInput.value.trim();
     if (!text || !currentPhotoId) return;
 
@@ -456,7 +486,7 @@
         photoList[currentPhotoIndex].comment_count++;
 
       } else {
-        alert(data.error || 'Impossible d’ajouter le commentaire.');
+        alert(data.error || 'Impossible d\'ajouter le commentaire.');
       }
     });
   }
@@ -468,7 +498,6 @@
   document.getElementById('prev-btn')?.addEventListener('click', prevPhoto);
   document.getElementById('next-btn')?.addEventListener('click', nextPhoto);
   document.getElementById('close-comments')?.addEventListener('click', closeComments);
-  document.getElementById('cancel-comment')?.addEventListener('click', closeComments);
   document.getElementById('comments-overlay')?.addEventListener('click', closeComments);
   document.getElementById('comment-form')?.addEventListener('submit', addComment);
   document.getElementById('download-disabled')?.addEventListener('click', () => {
@@ -487,8 +516,6 @@
     }
   });
 </script>
-
-
 
 
 {% endblock %}
