@@ -16,11 +16,11 @@ class VideoForm(forms.ModelForm):
         # Personnalisation des widgets (champs HTML) pour un meilleur style
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'form-control', 
+                'class': 'form-control text-black', 
                 'placeholder': 'Entrez le titre de la vidéo'
             }),
             'description': forms.Textarea(attrs={
-                'class': 'form-control', 
+                'class': 'form-control text-black bg-white', 
                 'rows': 4,
                 'placeholder': 'Décrivez votre vidéo...'
             }),
@@ -31,11 +31,11 @@ class VideoForm(forms.ModelForm):
                 'class': 'form-control'
             }),
             'duration': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control text-black',
                 'placeholder': 'Durée en secondes'
             }),
             'category': forms.Select(attrs={
-                'class': 'form-control'
+                'class': 'form-control text-black'
             }),
         }
 
@@ -53,11 +53,11 @@ class PhotoForm(forms.ModelForm):
         # Personnalisation des widgets
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control text-black',
                 'placeholder': 'Entrez le titre de la photo'
             }),
             'description': forms.Textarea(attrs={
-                'class': 'form-control', 
+                'class': 'form-control text-black bg-white', 
                 'rows': 4,
                 'placeholder': 'Décrivez votre photo...'
             }),
@@ -65,7 +65,7 @@ class PhotoForm(forms.ModelForm):
                 'class': 'form-control'
             }),
             'category': forms.Select(attrs={
-                'class': 'form-control'
+                'class': 'form-control text-black'
             }),
         }
 
@@ -85,9 +85,9 @@ class PhotoEditForm(forms.ModelForm):
         fields = ['title', 'description', 'category']  # Uniquement les métadonnées
         
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Entrez le titre de la photo'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Décrivez votre photo...'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control text-black', 'placeholder': 'Entrez le titre de la photo'}),
+            'description': forms.Textarea(attrs={'class': 'form-control text-black bg-white', 'rows': 4, 'placeholder': 'Décrivez votre photo...'}),
+            'category': forms.Select(attrs={'class': 'form-control text-black'}),
         }
 
 
@@ -105,8 +105,8 @@ class VideoEditForm(forms.ModelForm):
         fields = ['title', 'description', 'duration', 'category']  # Uniquement les métadonnées
         
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Entrez le titre de la vidéo'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Décrivez votre vidéo...'}),
-            'duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Durée en secondes'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control text-black', 'placeholder': 'Entrez le titre de la vidéo'}),
+            'description': forms.Textarea(attrs={'class': 'form-control text-black bg-white', 'rows': 4, 'placeholder': 'Décrivez votre vidéo...'}),
+            'duration': forms.NumberInput(attrs={'class': 'form-control text-black', 'placeholder': 'Durée en secondes'}),
+            'category': forms.Select(attrs={'class': 'form-control text-black'}),
         }

@@ -14,6 +14,7 @@ django-allauth==65.13.0
 django-cors-headers==4.9.0
 django-storages==1.14.6
 django-unfold==0.71.0
+django-widget-tweaks==1.5.0
 gunicorn==23.0.0
 h11==0.16.0
 h2==4.3.0
@@ -30,6 +31,7 @@ paystackapi==2.1.3
 pillow==12.0.0
 postgrest==2.24.0
 propcache==0.4.1
+psycopg2-binary==2.9.11
 pycparser==2.23
 pydantic==2.12.4
 pydantic_core==2.41.5
@@ -54,6 +56,3 @@ urllib3==2.5.0
 uvicorn==0.38.0
 websockets==15.0.1
 yarl==1.22.0
-django-widget-tweaks==1.5.0
-
-

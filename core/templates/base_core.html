@@ -45,7 +45,9 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden">
+<body class="bg-gray-900 text-gray-200 h-screen overflow-hidden">
+
+    {% include "partials/style.html" %}
 
     <!-- Navigation Desktop - Sidebar -->
     <!-- Sidebar est fixe et cachée sur mobile -->
@@ -69,38 +71,38 @@
         <nav class="flex-1 p-4">
             <ul class="space-y-2">
                 <li>
-                    <a href="{% url 'home' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors">
+                    <a href="{% url 'home' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors text-gray-300">
                         <i class="fas fa-home w-6 mr-3 text-gray-400"></i>
                         <span>Accueil</span>
                     </a>
                 </li>
                 {% if user.is_authenticated %}
                     <li>
-                        <a href="{% url 'upload_video_uppy' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors">
+                        <a href="{% url 'upload_video_uppy' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors text-gray-300">
                             <i class="fas fa-video w-6 mr-3 text-gray-400"></i>
                             <span>Uploader Vidéo</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'upload_photo_uppy' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors">
+                        <a href="{% url 'upload_photo_uppy' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors text-gray-300">
                             <i class="fas fa-camera w-6 mr-3 text-gray-400"></i>
                             <span>Uploader Photo</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'user_content' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors">
+                        <a href="{% url 'user_content' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors text-gray-300">
                             <i class="fas fa-folder w-6 mr-3 text-gray-400"></i>
                             <span>Mon Contenu</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/admin/" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors">
+                        <a href="/admin/" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors text-gray-300">
                             <i class="fas fa-cog w-6 mr-3 text-gray-400"></i>
                             <span>Admin</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'account_logout' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors">
+                        <a href="{% url 'account_logout' %}" class="flex items-center p-3 rounded-lg hover:bg-dark-lighter transition-colors text-gray-300">
                             <i class="fas fa-sign-out-alt w-6 mr-3 text-gray-400"></i>
                             <span>Déconnexion</span>
                         </a>
@@ -170,30 +172,30 @@
     <!-- Bottom Navigation Mobile (Style Instagram) -->
     <div class="fixed bottom-0 left-0 right-0 bg-dark border-t border-gray-800 md:hidden z-50">
         <div class="flex justify-around items-center py-2">
-            <a href="{% url 'home' %}" class="flex flex-col items-center p-2 text-gray-400 hover:text-white transition-colors">
-                <i class="fas fa-home text-xl"></i>
+            <a href="{% url 'home' %}" class="flex flex-col items-center p-2 text-gray-300 hover:text-white transition-colors">
+                <i class="fas fa-home text-xl text-gray-400"></i>
                 <span class="text-xs mt-1">Accueil</span>
             </a>
             {% if user.is_authenticated %}
-                <a href="{% url 'upload_photo_uppy' %}" class="flex flex-col items-center p-2 text-gray-400 hover:text-white transition-colors">
-                    <i class="fas fa-camera text-xl"></i>
+                <a href="{% url 'upload_photo_uppy' %}" class="flex flex-col items-center p-2 text-gray-300 hover:text-white transition-colors">
+                    <i class="fas fa-camera text-xl text-gray-400"></i>
                     <span class="text-xs mt-1">Photo</span>
                 </a>
-                <a href="{% url 'upload_video_uppy' %}" class="flex flex-col items-center p-2 text-gray-400 hover:text-white transition-colors">
-                    <i class="fas fa-video text-xl"></i>
+                <a href="{% url 'upload_video_uppy' %}" class="flex flex-col items-center p-2 text-gray-300 hover:text-white transition-colors">
+                    <i class="fas fa-video text-xl text-gray-400"></i>
                     <span class="text-xs mt-1">Video</span>
                 </a>
-                <a href="{% url 'user_content' %}" class="flex flex-col items-center p-2 text-gray-400 hover:text-white transition-colors">
-                    <i class="fas fa-folder text-xl"></i>
-                    <span class="text-xs mt-1">Photo</span>
+                <a href="{% url 'user_content' %}" class="flex flex-col items-center p-2 text-gray-300 hover:text-white transition-colors">
+                    <i class="fas fa-folder text-xl text-gray-400"></i>
+                    <span class="text-xs mt-1">Me</span>
                 </a>
-                <a href="{% url 'index' %}" class="flex flex-col items-center p-2 text-gray-400 hover:text-white transition-colors">
-                    <i class="fas fa-arrow-right text-xl"></i>
+                <a href="{% url 'index' %}" class="flex flex-col items-center p-2 text-gray-300 hover:text-white transition-colors">
+                    <i class="fas fa-arrow-right text-xl text-gray-400"></i>
                     <span class="text-xs mt-1">Retour</span>
                 </a>
             {% else %}
-                <a href="{% url 'account_login' %}" class="flex flex-col items-center p-2 text-gray-400 hover:text-white transition-colors">
-                    <i class="fas fa-sign-in-alt text-xl"></i>
+                <a href="{% url 'account_login' %}" class="flex flex-col items-center p-2 text-gray-300 hover:text-white transition-colors">
+                    <i class="fas fa-sign-in-alt text-xl text-gray-400"></i>
                     <span class="text-xs mt-1">Connexion</span>
                 </a>
             {% endif %}

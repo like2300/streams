@@ -6,61 +6,61 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Section Vidéos -->
     <div>
-        <h2 class="text-2xl font-bold mb-4 border-b pb-2">🎬 Vidéos Récentes</h2>
+        <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-white border-gray-700">🎬 Vidéos Récentes</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {% for video in videos %}
-            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-700">
                 {% if video.cover_image %}
                     <!-- ✅ CHANGEMENT: Utiliser cover_url (qui retourne l'URL R2) -->
                     <img src="{{ video.cover_url }}" alt="{{ video.title }}" class="w-full h-40 object-cover">
                 {% else %}
-                    <div class="w-full h-40 bg-gray-300 flex items-center justify-center text-gray-500">
+                    <div class="w-full h-40 bg-gray-700 flex items-center justify-center text-gray-300">
                         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path>
                         </svg>
                     </div>
                 {% endif %}
                 <div class="p-4">
-                    <h3 class="font-semibold truncate">{{ video.title }}</h3>
-                    <p class="text-sm text-gray-600 mt-1">👁️ {{ video.views }} vues</p>
+                    <h3 class="font-semibold truncate text-white">{{ video.title }}</h3>
+                    <p class="text-sm text-gray-400 mt-1">👁️ {{ video.views }} vues</p>
                     {% if video.duration %}
                         <p class="text-sm text-gray-500">⏱️ {{ video.duration }}s</p>
                     {% endif %}
-                    <a href="{% url 'video_detail' video.id %}" class="inline-block mt-3 text-blue-600 font-medium hover:underline">Voir la vidéo →</a>
+                    <a href="{% url 'video_detail' video.id %}" class="inline-block mt-3 text-indigo-400 font-medium hover:underline">Voir la vidéo →</a>
                 </div>
             </div>
             {% empty %}
-            <p class="text-gray-500 col-span-2">Aucune vidéo pour le moment.</p>
+            <p class="text-gray-400 col-span-2">Aucune vidéo pour le moment.</p>
             {% endfor %}
         </div>
     </div>
 
     <!-- Section Photos -->
     <div>
-        <h2 class="text-2xl font-bold mb-4 border-b pb-2">📷 Photos Récentes</h2>
+        <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-white border-gray-700">📷 Photos Récentes</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {% for photo in photos %}
-            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-700">
                 {% if photo.photo_file %}
                     <!-- ✅ CHANGEMENT: Utiliser image_url (qui retourne l'URL R2) -->
                     <img src="{{ photo.image_url }}" alt="{{ photo.title }}" class="w-full h-40 object-cover">
                 {% else %}
-                    <div class="w-full h-40 bg-gray-300 flex items-center justify-center text-gray-500">
+                    <div class="w-full h-40 bg-gray-700 flex items-center justify-center text-gray-300">
                         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path>
                         </svg>
                     </div>
                 {% endif %}
                 <div class="p-4">
-                    <h3 class="font-semibold truncate">{{ photo.title }}</h3>
+                    <h3 class="font-semibold truncate text-white">{{ photo.title }}</h3>
                     {% if photo.category %}
-                        <p class="text-sm text-gray-500">📁 {{ photo.category.name }}</p>
+                        <p class="text-sm text-gray-400">📁 {{ photo.category.name }}</p>
                     {% endif %}
-                    <a href="{% url 'photo_detail' photo.id %}" class="inline-block mt-3 text-blue-600 font-medium hover:underline">Voir la photo →</a>
+                    <a href="{% url 'photo_detail' photo.id %}" class="inline-block mt-3 text-indigo-400 font-medium hover:underline">Voir la photo →</a>
                 </div>
             </div>
             {% empty %}
-            <p class="text-gray-500 col-span-2">Aucune photo pour le moment.</p>
+            <p class="text-gray-400 col-span-2">Aucune photo pour le moment.</p>
             {% endfor %}
         </div>
     </div>
