@@ -1,18 +1,65 @@
 {% extends "baseApp.html" %}
 {% load static %}
-{% block title %}Résultats de recherche{% endblock %}
+
+{% block title %}Photos{% endblock %}
+
+{% block extra_css %}
+  <style>
+    [data-gradient-border] {
+      position: relative;
+    }
+    [data-gradient-border]::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 1rem;
+      background: linear-gradient(45deg, #a2189279, #e959c043, #a2189200);
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    /* Style pour les filtres */
+    .filter-btn {
+      transition: all 0.3s ease;
+    }
+    .filter-btn.active {
+      background-color: #a21892;
+    }
+  </style>
+{% endblock %}
 
 {% block content %}
-<div class="mt-16 px-4"> 
 
-    
-  {% if photos %}
-  <div class="mt-16 max-w-7xl mx-auto">
-    <h2 class="text-white text-3xl sm:text-4xl md:text-5xl font-normal mb-8">Photos</h2>
-    <div class="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-6">
+<!-- Main Content -->
+<div class="mt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+
+  <!-- Section: Photos -->
+  <section class="mb-16">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8">
+      <div class="mb-4 sm:mb-0">
+        <h2 class="text-white text-3xl sm:text-4xl md:text-5xl font-normal leading-tight">Photos</h2>
+        <p class="text-gray-400 text-base sm:text-lg mt-2">Sexy photos · Modèle sexy · Charme</p>
+      </div>
+      <div class="flex gap-2 mb-4 sm:mb-0">
+        <button id="filter-all" class="filter-btn active bg-gray-700 hover:bg-[#a21892] text-white px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300">
+          Tout
+        </button>
+        <button id="filter-popular" class="filter-btn bg-gray-700 hover:bg-[#a21892] text-white px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300">
+          Populaire
+        </button>
+        <button id="filter-recent" class="filter-btn bg-gray-700 hover:bg-[#a21892] text-white px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300">
+          Récent
+        </button>
+      </div>
+    </div>
+
+    <div id="photos-container" class="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
       {% for photo in photos %}
-        <div class="break-inside-avoid group cursor-pointer" 
-             onclick="openSwipeModal({{ photo.id }})">
+        <div class="photo-item break-inside-avoid group cursor-pointer" 
+             data-id="{{ photo.id }}" 
+             data-likes="{{ photo.likes_count|default:0 }}" 
+             data-date="{{ photo.created_at|date:'Y-m-d' }}"
+             onclick="openSwipeModal({ id: {{ photo.id }}, type: 'photo' })">
           <div class="relative overflow-hidden rounded-xl shadow-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl">
             <img
               src="{{ photo.photo_file|default:'' }}"
@@ -21,21 +68,25 @@
               loading="lazy"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-              <p class="text-white px-4 pb-4 text-sm sm:text-base font-medium truncate">{{ photo.title|truncatechars:30 }}</p>
+              <div class="w-full px-4 pb-4">
+                <p class="text-white text-sm sm:text-base font-medium truncate">{{ photo.title|truncatechars:30 }}</p>
+                <div class="flex justify-between items-center mt-1">
+                  <span class="text-white text-xs">{{ photo.user.username }}</span>
+                  <div class="flex items-center gap-1">
+                    <i class='bx bx-heart text-xs text-white'></i>
+                    <span class="text-white text-xs">{{ photo.likes_count|default:0 }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      {% empty %}
+        <p class="text-gray-500 col-span-full text-center py-4">Aucune photo disponible.</p>
       {% endfor %}
     </div>
-  </div>
-  {% endif %}
-
-  <!-- Aucun résultat -->
-  {% if not videos and not photos and query %}
-    <p class="text-white mt-8 text-xl">Aucun résultat trouvé pour "<strong>{{ query }}</strong>"</p>
-  {% endif %}
+  </section>
 </div>
-
 
 <!-- Modale de Swipe avec Like & Commentaires -->
 <div id="swipe-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
@@ -112,7 +163,6 @@
       </div>
     </form>
 
-
     <!-- Zone de défilement pour les commentaires -->
     <div id="comments-list" class="flex-1 overflow-y-auto space-y-4 pb-6">
       <!-- Style personnalisé pour le scroll -->
@@ -143,104 +193,12 @@
                     <br>
                     
                 </div>
-
-   
   </div>
 </div>
 
 <div id="comments-overlay" class="fixed inset-0 bg-black/50 z-49 hidden"></div>
 
-<!-- Boxicons + Hammer.js -->
-<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-
-
-
-
 <script>
-  // === SLIDER LOGIC ===
-  document.addEventListener('DOMContentLoaded', function () {
-    const slides = {{ slides|safe }};
-    if (!slides || slides.length === 0) return;
-
-    const slider = document.getElementById('slider');
-    const slideText = document.getElementById('slide-text');
-    const dotsContainer = document.getElementById('dots');
-    let currentIndex = 0;
-    let intervalId = null;
-
-    function createDots() {
-      slides.forEach((_, i) => {
-        const dot = document.createElement('button');
-        dot.setAttribute('aria-label', `Aller à la slide ${i + 1}`);
-        dot.className = 'w-2.5 h-2.5 rounded-full transition-colors duration-300';
-        dot.addEventListener('click', () => {
-          goToSlide(i);
-          resetInterval();
-        });
-        dotsContainer.appendChild(dot);
-      });
-    }
-
-    function updateDots(index) {
-      Array.from(dotsContainer.children).forEach((dot, i) => {
-        dot.classList.toggle('bg-white', i === index);
-        dot.classList.toggle('bg-white/40', i !== index);
-      });
-    }
-
-    function goToSlide(index) {
-      currentIndex = index;
-      const slide = slides[index];
-      
-      // Preload image
-      const img = new Image();
-      img.onload = () => {
-        slider.style.backgroundImage = `url(${slide.image})`;
-        slideText.textContent = slide.text;
-        slider.parentElement.setAttribute('onclick', `window.location.href='/video/player/${slide.video_id}/'`);
-        updateDots(index);
-      };
-      img.src = slide.image;
-    }
-
-    function nextSlide() {
-      currentIndex = (currentIndex + 1) % slides.length;
-      goToSlide(currentIndex);
-    }
-
-    function prevSlide() {
-      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-      goToSlide(currentIndex);
-    }
-
-    function startInterval() {
-      intervalId = setInterval(nextSlide, 5000);
-    }
-
-    function resetInterval() {
-      clearInterval(intervalId);
-      startInterval();
-    }
-
-    document.getElementById('next').addEventListener('click', (e) => {
-      e.stopPropagation();
-      nextSlide();
-      resetInterval();
-    });
-
-    document.getElementById('prev').addEventListener('click', (e) => {
-      e.stopPropagation();
-      prevSlide();
-      resetInterval();
-    });
-
-    createDots();
-    goToSlide(0);
-    startInterval();
-  });
-
-
   // === MODAL & COMMENTS LOGIC ===
   const photoList = [
     {% for photo in photos %}
@@ -251,13 +209,65 @@
         description: "{{ photo.description|escapejs|default:'' }}",
         author: "{{ photo.user.username|escapejs }}",
         date: "{{ photo.created_at|date:'d/m/Y'|escapejs }}",
-        comment_count: {{ photo.comment_count }}
+        date_raw: "{{ photo.created_at|date:'Y-m-d'|escapejs }}",
+        likes_count: {{ photo.likes_count|default:0 }},
+        comment_count: {{ photo.comment_count|default:0 }}
       },
     {% endfor %}
   ];
 
   let currentPhotoIndex = 0;
   let currentPhotoId = null;
+  let currentFilter = 'all';
+
+  // Fonction pour appliquer les filtres
+  function applyFilter(filterType) {
+    currentFilter = filterType;
+    const container = document.getElementById('photos-container');
+    const photoItems = Array.from(container.querySelectorAll('.photo-item'));
+    
+    // Mettre à jour le style des boutons de filtre
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active', 'bg-[#a21892]');
+      btn.classList.add('bg-gray-700');
+    });
+    
+    const activeBtn = document.getElementById(`filter-${filterType}`);
+    activeBtn.classList.add('active', 'bg-[#a21892]');
+    activeBtn.classList.remove('bg-gray-700');
+    
+    // Trier les photos selon le filtre
+    let sortedItems;
+    
+    if (filterType === 'popular') {
+      // Trier par nombre de likes (décroissant)
+      sortedItems = photoItems.sort((a, b) => {
+        const likesA = parseInt(a.dataset.likes) || 0;
+        const likesB = parseInt(b.dataset.likes) || 0;
+        return likesB - likesA;
+      });
+    } else if (filterType === 'recent') {
+      // Trier par date (décroissant)
+      sortedItems = photoItems.sort((a, b) => {
+        const dateA = new Date(a.dataset.date);
+        const dateB = new Date(b.dataset.date);
+        return dateB - dateA;
+      });
+    } else {
+      // Ordre original
+      sortedItems = photoItems.sort((a, b) => {
+        const idA = parseInt(a.dataset.id);
+        const idB = parseInt(b.dataset.id);
+        return idA - idB;
+      });
+    }
+    
+    // Vider le conteneur et ajouter les éléments triés
+    container.innerHTML = '';
+    sortedItems.forEach(item => {
+      container.appendChild(item);
+    });
+  }
 
   function openSwipeModal(data) {
     currentPhotoIndex = photoList.findIndex(p => p.id === data.id);
@@ -296,6 +306,7 @@
     document.getElementById('swipe-desc').textContent = photo.description || '';
     document.getElementById('swipe-author').textContent = photo.author;
     document.getElementById('swipe-date').textContent = photo.date;
+    document.getElementById('like-count').textContent = photo.likes_count;
     document.getElementById('comment-count').textContent = photo.comment_count;
     
     const downloadBtn = document.getElementById('download-btn');
@@ -313,6 +324,9 @@
       document.getElementById('like-icon').className = data.is_liked
         ? 'bx bxs-heart text-lg text-red-500'
         : 'bx bx-heart text-lg';
+    })
+    .catch(error => {
+      console.error('Error loading like status:', error);
     });
   }
 
@@ -320,7 +334,11 @@
     if (!currentPhotoId) return;
     fetch(`/photo/${currentPhotoId}/like/`, {
       method: 'POST',
-      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+      headers: { 
+        'X-CSRFToken': '{{ csrf_token }}', 
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/json'
+      }
     })
     .then(r => r.json())
     .then(data => {
@@ -329,7 +347,31 @@
         document.getElementById('like-icon').className = data.is_liked
           ? 'bx bxs-heart text-lg text-red-500'
           : 'bx bx-heart text-lg';
+          
+        // Mettre à jour le compteur dans la grille
+        const photoElement = document.querySelector(`[data-id="${currentPhotoId}"]`);
+        if (photoElement) {
+          photoElement.dataset.likes = data.likes_count;
+          const likeCountElement = photoElement.querySelector('.bx-heart').parentElement;
+          if (likeCountElement) {
+            likeCountElement.innerHTML = `<i class='bx bx-heart text-xs text-white'></i> <span class="text-white text-xs">${data.likes_count}</span>`;
+          }
+        }
+        
+        // Mettre à jour le compteur dans la liste
+        const photoIndex = photoList.findIndex(p => p.id === currentPhotoId);
+        if (photoIndex !== -1) {
+          photoList[photoIndex].likes_count = data.likes_count;
+        }
+        
+        // Si le filtre actuel est "populaire", réappliquer le tri
+        if (currentFilter === 'popular') {
+          applyFilter('popular');
+        }
       }
+    })
+    .catch(error => {
+      console.error('Error toggling like:', error);
     });
   }
 
@@ -338,7 +380,6 @@
     loadComments(currentPhotoId);
     document.getElementById('comments-sidebar').classList.remove('translate-x-full');
     document.getElementById('comments-overlay').classList.remove('hidden');
-    closeSwipeModal();
   }
 
   function closeComments() {
@@ -359,7 +400,7 @@
             el.className = 'flex gap-3';
             el.innerHTML = `
               <div class="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-white">
-                ${comment.user.first_initial}
+                ${comment.user.username.charAt(0).toUpperCase()}
               </div>
               <div class="flex-1">
                 <div class="flex items-center gap-2">
@@ -374,6 +415,10 @@
         } else {
           list.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="material-icons text-4xl mb-2">forum</i><p>Aucun commentaire pour le moment.</p></div>';
         }
+      })
+      .catch(error => {
+        console.error('Error loading comments:', error);
+        list.innerHTML = '<p class="text-red-400">Erreur lors du chargement des commentaires.</p>';
       });
   }
 
@@ -418,25 +463,41 @@
         // Update comment count on modal
         const countEl = document.getElementById('comment-count');
         countEl.textContent = parseInt(countEl.textContent) + 1;
-        photoList[currentPhotoIndex].comment_count++;
-
+        
+        // Update comment count in photo list
+        const photoIndex = photoList.findIndex(p => p.id === currentPhotoId);
+        if (photoIndex !== -1) {
+          photoList[photoIndex].comment_count++;
+        }
       } else {
         alert(data.error || 'Impossible d\'ajouter le commentaire.');
       }
+    })
+    .catch(error => {
+      console.error('Error adding comment:', error);
+      alert('Une erreur est survenue lors de l\'ajout du commentaire.');
     });
   }
 
   // === ÉVÉNEMENTS ===
-  document.getElementById('like-btn')?.addEventListener('click', toggleLike);
-  document.getElementById('comment-btn')?.addEventListener('click', openComments);
-  document.getElementById('close-swipe')?.addEventListener('click', closeSwipeModal);
-  document.getElementById('prev-btn')?.addEventListener('click', prevPhoto);
-  document.getElementById('next-btn')?.addEventListener('click', nextPhoto);
-  document.getElementById('close-comments')?.addEventListener('click', closeComments);
-  document.getElementById('comments-overlay')?.addEventListener('click', closeComments);
-  document.getElementById('comment-form')?.addEventListener('submit', addComment);
-  document.getElementById('download-disabled')?.addEventListener('click', () => {
-    alert('Abonnez-vous pour télécharger !');
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser les filtres
+    document.getElementById('filter-all').addEventListener('click', () => applyFilter('all'));
+    document.getElementById('filter-popular').addEventListener('click', () => applyFilter('popular'));
+    document.getElementById('filter-recent').addEventListener('click', () => applyFilter('recent'));
+    
+    // Autres événements
+    document.getElementById('like-btn')?.addEventListener('click', toggleLike);
+    document.getElementById('comment-btn')?.addEventListener('click', openComments);
+    document.getElementById('close-swipe')?.addEventListener('click', closeSwipeModal);
+    document.getElementById('prev-btn')?.addEventListener('click', prevPhoto);
+    document.getElementById('next-btn')?.addEventListener('click', nextPhoto);
+    document.getElementById('close-comments')?.addEventListener('click', closeComments);
+    document.getElementById('comments-overlay')?.addEventListener('click', closeComments);
+    document.getElementById('comment-form')?.addEventListener('submit', addComment);
+    document.getElementById('download-disabled')?.addEventListener('click', () => {
+      alert('Abonnez-vous pour télécharger !');
+    });
   });
 
   document.addEventListener('keydown', (e) => {
@@ -448,6 +509,10 @@
       } else if (modal && !modal.classList.contains('hidden')) {
         closeSwipeModal();
       }
+    } else if (e.key === 'ArrowLeft' && !document.getElementById('swipe-modal').classList.contains('hidden')) {
+      prevPhoto();
+    } else if (e.key === 'ArrowRight' && !document.getElementById('swipe-modal').classList.contains('hidden')) {
+      nextPhoto();
     }
   });
 </script>
