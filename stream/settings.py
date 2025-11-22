@@ -67,6 +67,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Doit être en premier pour gérer les CORS
+    'stream.middleware.ProxyHeaderMiddleware',  # Add this for Render proxy headers
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -213,6 +214,9 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
+    
+    # Trust the X-Forwarded-Proto header coming from Render's proxy
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # === AUTHENTIFICATION PAR EMAIL UNIQUEMENT ===
 AUTHENTICATION_BACKENDS = (
