@@ -34,6 +34,8 @@ LOGOUT_REDIRECT_URL = '/'
 # Origines de confiance pour les requêtes CSRF (utile avec ngrok)
 CSRF_TRUSTED_ORIGINS = [
     "https://vicarious-cucullately-davian.ngrok-free.dev",
+
+    "*"
 ]
 
 
