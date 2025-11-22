@@ -34,7 +34,7 @@ LOGOUT_REDIRECT_URL = '/'
 # Origines de confiance pour les requêtes CSRF (utile avec ngrok)
 CSRF_TRUSTED_ORIGINS = [
     "https://vicarious-cucullately-davian.ngrok-free.dev",
-    "*"
+    "https://*.render.com"  # Ajouté pour Render
 ]
 
 
@@ -225,15 +225,18 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False            
-
+# Paramètres pour django-allauth avec les nouveaux formats
+ACCOUNT_LOGIN_METHODS = ['email']
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+            
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"     
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# Configuration pour gérer les anciens paramètres dépréciés
+ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
 
 # === SOCIAL LOGIN (GOOGLE) ===
 SOCIALACCOUNT_PROVIDERS = {
